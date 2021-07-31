@@ -88,6 +88,26 @@
   ""
   :type 'string)
 
+(defcustom eaf-music-player-keybinding
+  '(("<f12>" . "open_devtools")
+    ("j" . "play_next")
+    ("k" . "play_prev")
+    ("h" . "play_random")
+    ("," . "backward")
+    ("." . "forward")
+    ("SPC" . "toggle")
+    ("C-n" . "scroll_up")
+    ("C-p" . "scroll_down")
+    ("C-v" . "scroll_up_page")
+    ("M-v" . "scroll_down_page")
+    ("M-<" . "scroll_to_begin")
+    ("M->" . "scroll_to_bottom")
+    ("g" . "jump_to_file")
+    ("t" . "toggle_play_order")
+    )
+  "The keybinding of EAF Music Player."
+  :type 'cons)
+
 (provide 'eaf-music-player)
 
 ;;; eaf-music-player.el ends here
