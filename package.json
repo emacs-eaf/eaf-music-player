@@ -11,7 +11,7 @@
     "album-art": "^1.0.4",
     "core-js": "^3.16.1",
     "qwebchannel": "^5.9.0",
-    "vue": "^2.6.11",
+    "vue": "^2.6.14",
     "vue-audio-visual": "^2.3.0",
     "vuex": "^3.6.2"
   },
@@ -23,7 +23,7 @@
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.16.0",
     "vue-svg-icon": "^1.2.9",
-    "vue-template-compiler": "^2.6.11"
+    "vue-template-compiler": "^2.6.14"
   },
   "eslintConfig": {
     "root": true,
