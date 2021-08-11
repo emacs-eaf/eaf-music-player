@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "album-art": "^1.0.4",
-    "core-js": "^3.6.5",
+    "core-js": "^3.16.1",
     "qwebchannel": "^5.9.0",
     "vue": "^2.6.11",
     "vue-audio-visual": "^2.2.2",
