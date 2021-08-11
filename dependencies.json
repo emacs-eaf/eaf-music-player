@@ -1,0 +1,23 @@
+{
+    "pacman": [
+        "taglib"
+    ],
+    "apt": [
+        "libtag1-dev"
+    ],
+    "dnf": [
+        "taglib-devel"
+    ],
+    "pkg": [
+        "taglib"
+    ],
+    "pip": {
+        "linux": [
+            "pytaglib"
+        ],
+        "win32": [
+            "pytaglib"
+        ]
+    },
+    "vue_install": true
+}
