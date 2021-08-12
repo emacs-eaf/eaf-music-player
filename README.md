@@ -1,2 +1,6 @@
-# EAF Music Player
-This repository provides the EAF Music Player application for the [Emacs Application Framework](https://github.com/emacs-eaf/emacs-application-framework).
+### EAF Music Player
+<p align="center">
+  <img width="800" src="./screenshot.png">
+</p>
+
+Music Player application for the [Emacs Application Framework](https://github.com/emacs-eaf/emacs-application-framework).
