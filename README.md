@@ -17,3 +17,24 @@ Music Player application for the [Emacs Application Framework](https://github.co
 | Package         | Description   |
 | :--------       | :------       |
 | python-pytaglib | Parse ID3 tag |
+
+### The keybinding of EAF Music Player.
+
+| Key   | Event   |
+| :---- | :------ |
+| `<f12>` | open_devtools |
+| `j` | js_play_next |
+| `k` | js_play_prev |
+| `h` | js_play_random |
+| `,` | js_backward |
+| `.` | js_forward |
+| `SPC` | js_toggle |
+| `C-n` | js_scroll_up |
+| `C-p` | js_scroll_down |
+| `C-v` | js_scroll_up_page |
+| `M-v` | js_scroll_down_page |
+| `M-<` | js_scroll_to_begin |
+| `M->` | js_scroll_to_bottom |
+| `g` | js_jump_to_file |
+| `t` | js_toggle_play_order |
+
