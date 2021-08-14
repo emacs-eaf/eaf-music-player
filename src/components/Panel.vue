@@ -140,8 +140,14 @@
        this.$refs.player.load();
        this.$refs.player.play();
 
-       albumArt(item.artist, item.album, "medium", (error, url) => {
-         this.currentCover = url;
+       albumArt(item.artist, {album: item.album, size: 'small'}, (error, url) => {
+         console.log(error, url);
+
+         if (error) {
+           this.currentCover = "";
+         } else {
+           this.currentCover = url;
+         }
        })
      },
 
@@ -258,7 +264,7 @@
  }
 
  .cover {
-   height: 80%;
+   width: 60px;
    margin-left: 30px;
  }
 
