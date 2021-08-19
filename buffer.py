@@ -38,7 +38,6 @@ class AppBuffer(BrowserBuffer):
         self.first_file = os.path.expanduser(arguments)
         self.panel_background_color = QColor(get_emacs_var("eaf-emacs-theme-background-color")).darker(110).name()
 
-        self.buffer_widget.loadFinished.connect(self.init_app)
         self.load_index_html(__file__)
 
     def init_app(self):
