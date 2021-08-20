@@ -129,7 +129,7 @@
      },
 
      jumpToFile() {
-       window.pyobject.eval_emacs_function("dired", [this.currentTrack]);
+       window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.currentTrack]);
      }
    }
  }
