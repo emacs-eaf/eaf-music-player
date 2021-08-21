@@ -140,6 +140,7 @@
        this.$refs.player.load();
        this.$refs.player.play();
 
+       this.currentCover = "";
        albumArt(item.artist, {album: item.album, size: 'small'}, (error, url) => {
          console.log(error, url);
 
