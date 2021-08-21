@@ -3,7 +3,7 @@
     ref="playlist"
     class="playlist">
     <div
-      class="item"
+      class="item eaf-music-player-item"
       v-for="(item, index) in fileInfos"
       @click="playItem(item)"
       :key="item.path"

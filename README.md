@@ -37,4 +37,5 @@ Music Player application for the [Emacs Application Framework](https://github.co
 | `M->` | js_scroll_to_bottom |
 | `g` | js_jump_to_file |
 | `t` | js_toggle_play_order |
+| `F` | open_link |
 
