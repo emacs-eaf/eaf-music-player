@@ -63,7 +63,7 @@
         class="visual-bar"
         ref-link="player"
         caps-color="#FFF"
-        :bar-color="['#f00', '#ff0', '#0f0']"
+        :bar-color="getBarColors()"
         :caps-height="2"
       />
     </div>
@@ -178,6 +178,10 @@
 
      initPlayOrder(playOrder) {
        this.playOrder = playOrder;
+     },
+
+     getBarColors() {
+       return [this.foregroundColor, "#FF0", "#0F0"]
      },
 
      formatTime(seconds) {
