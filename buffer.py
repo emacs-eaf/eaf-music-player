@@ -96,3 +96,9 @@ class AppBuffer(BrowserBuffer):
                 return 1
             else:
                 return 0
+
+    def marker_offset_x(self):
+        return 0
+
+    def marker_offset_y(self):
+        return 8
