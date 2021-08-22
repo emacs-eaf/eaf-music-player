@@ -41,17 +41,17 @@ class AppBuffer(BrowserBuffer):
         self.load_index_html(__file__)
 
     def init_app(self):
-        self.buffer_widget.execute_js('''initPlaylistColor(\"{}\", \"{}\")'''.format(
+        self.buffer_widget.eval_js('''initPlaylistColor(\"{}\", \"{}\")'''.format(
             get_emacs_var("eaf-emacs-theme-background-color"),
             get_emacs_var("eaf-emacs-theme-foreground-color")
         ))
 
-        self.buffer_widget.execute_js('''initPanelColor(\"{}\", \"{}\")'''.format(
+        self.buffer_widget.eval_js('''initPanelColor(\"{}\", \"{}\")'''.format(
             self.panel_background_color,
             get_emacs_var("eaf-emacs-theme-foreground-color")
         ))
 
-        self.buffer_widget.execute_js('''initPlayOrder(\"{}\")'''.format(
+        self.buffer_widget.eval_js('''initPlayOrder(\"{}\")'''.format(
             get_emacs_var("eaf-music-play-order")
         ))
 
@@ -62,7 +62,7 @@ class AppBuffer(BrowserBuffer):
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
 
-        self.buffer_widget.execute_js('''addFiles({});'''.format(json.dumps(self.pick_music_info(files))))
+        self.buffer_widget.eval_js('''addFiles({});'''.format(json.dumps(self.pick_music_info(files))))
 
     def pick_music_info(self, files):
         infos = []
