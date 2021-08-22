@@ -11,6 +11,9 @@
     "pkg": [
         "taglib"
     ],
+    "zypper":[
+        "python38-pytaglib"
+    ],
     "pip": {
         "linux": [
             "pytaglib"
