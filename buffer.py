@@ -36,24 +36,16 @@ class AppBuffer(BrowserBuffer):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
         self.first_file = os.path.expanduser(arguments)
-        self.panel_background_color = QColor(get_emacs_var("eaf-emacs-theme-background-color")).darker(110).name()
+        self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
 
         self.load_index_html(__file__)
 
     def init_app(self):
-        self.buffer_widget.eval_js('''initPlaylistColor(\"{}\", \"{}\")'''.format(
-            get_emacs_var("eaf-emacs-theme-background-color"),
-            get_emacs_var("eaf-emacs-theme-foreground-color")
-        ))
+        self.buffer_widget.eval_js('''initPlaylistColor(\"{}\", \"{}\")'''.format(self.theme_background_color, self.theme_foreground_color))
 
-        self.buffer_widget.eval_js('''initPanelColor(\"{}\", \"{}\")'''.format(
-            self.panel_background_color,
-            get_emacs_var("eaf-emacs-theme-foreground-color")
-        ))
+        self.buffer_widget.eval_js('''initPanelColor(\"{}\", \"{}\")'''.format(self.panel_background_color, self.theme_foreground_color))
 
-        self.buffer_widget.eval_js('''initPlayOrder(\"{}\")'''.format(
-            get_emacs_var("eaf-music-play-order")
-        ))
+        self.buffer_widget.eval_js('''initPlayOrder(\"{}\")'''.format(get_emacs_var("eaf-music-play-order")))
 
         files = []
 
