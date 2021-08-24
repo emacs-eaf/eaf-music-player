@@ -114,10 +114,20 @@
   "The extension list of music application."
   :type 'cons)
 
+(defcustom eaf-music-default-file nil
+  "The default music file or directory."
+  :type 'file)
+
 ;;;###autoload
 (defun eaf-open-music-player (music-file)
   "Open EAF music player."
-  (interactive "fOpen music: ")
+  (interactive
+   (list (if (and eaf-music-default-file
+                  (file-exists-p eaf-music-default-file))
+             (progn
+               (message "[EAF/music-player] opening `eaf-music-default-file'.")
+               (expand-file-name eaf-music-default-file))
+           (read-file-name "Open music: "))))
   (eaf-open "eaf-music-player" "music-player" music-file))
 
 (add-to-list 'eaf-app-extensions-alist '("music-player" . eaf-music-extension-list))
