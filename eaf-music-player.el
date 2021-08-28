@@ -119,16 +119,13 @@
   :type 'file)
 
 ;;;###autoload
-(defun eaf-open-music-player (music-file)
+(defun eaf-open-music-player (&optional music-file)
   "Open EAF music player."
-  (interactive
-   (list (if (and eaf-music-default-file
-                  (file-exists-p eaf-music-default-file))
-             (progn
-               (message "[EAF/music-player] opening `eaf-music-default-file'.")
-               (expand-file-name eaf-music-default-file))
-           (read-file-name "Open music: "))))
-  (eaf-open "eaf-music-player" "music-player" music-file))
+  (interactive)
+  (eaf-open "eaf-music-player"
+            "music-player"
+            (read-file-name "Open music: " (or music-file
+                                               eaf-music-default-file))))
 
 (add-to-list 'eaf-app-extensions-alist '("music-player" . eaf-music-extension-list))
 (add-to-list 'eaf-app-binding-alist '("music-player" . eaf-music-player-keybinding))
