@@ -122,10 +122,10 @@
 (defun eaf-open-music-player (&optional music-file)
   "Open EAF music player."
   (interactive)
-  (eaf-open "eaf-music-player"
+  (eaf-open (read-file-name "Open music: " (or music-file
+                                               eaf-music-default-file))
             "music-player"
-            (read-file-name "Open music: " (or music-file
-                                               eaf-music-default-file))))
+            ))
 
 (add-to-list 'eaf-app-extensions-alist '("music-player" . eaf-music-extension-list))
 (add-to-list 'eaf-app-binding-alist '("music-player" . eaf-music-player-keybinding))
