@@ -35,7 +35,7 @@ class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
-        self.first_file = os.path.expanduser(arguments)
+        self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
 
         self.load_index_html(__file__)
