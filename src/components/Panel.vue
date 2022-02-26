@@ -261,7 +261,7 @@
 
    width: 100%;
 
-   box-shadow: 0px -4px 3px rgba(30, 30, 30, 0.75);
+   box-shadow: 0px -4px 3px rgba(30, 30, 30, 0.2);
 
    display: flex;
    flex-direction: row;
