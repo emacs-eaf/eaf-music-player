@@ -182,7 +182,7 @@
      },
 
      getBarColors() {
-       return [this.foregroundColor, "#FF0", "#0F0"]
+       return [this.backgroundColor, this.foregroundColor, this.foregroundColor]
      },
 
      formatTime(seconds) {
