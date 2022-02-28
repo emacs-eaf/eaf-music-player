@@ -1,26 +1,29 @@
 {
-    "pacman": [
-        "taglib"
+  "pacman": [
+    "taglib"
+  ],
+  "emerge": [
+    "media-libs/libtaginfo"
+  ],
+  "apt": [
+    "libtag1-dev"
+  ],
+  "dnf": [
+    "taglib-devel"
+  ],
+  "pkg": [
+    "taglib"
+  ],
+  "zypper":[
+    "python38-pytaglib"
+  ],
+  "pip": {
+    "linux": [
+      "pytaglib"
     ],
-    "apt": [
-        "libtag1-dev"
-    ],
-    "dnf": [
-        "taglib-devel"
-    ],
-    "pkg": [
-        "taglib"
-    ],
-    "zypper":[
-        "python38-pytaglib"
-    ],
-    "pip": {
-        "linux": [
-            "pytaglib"
-        ],
-        "win32": [
-            "pytaglib"
-        ]
-    },
-    "vue_install": true
+    "win32": [
+      "pytaglib"
+    ]
+  },
+  "vue_install": true
 }
