@@ -1,4 +1,11 @@
 <template>
+<div>
+  <div class="top-bar">
+    <div class="item-index"> #&nbsp; </div>
+    <div class="item-name"> TITLE </div>
+    <div class="item-artist"> ARTIST </div>
+    <div class="item-album"> ALBUM </div>
+  </div>
   <div
     ref="playlist"
     class="playlist">
@@ -22,6 +29,7 @@
       </div>
     </div>
   </div>
+<div>
 </template>
 
 <script>
@@ -40,7 +48,8 @@
      "currentTrack",
      "currentTrackIndex",
      "numberWidth",
-     "fileInfos"
+     "fileInfos",
+     "playListSortIndex"
    ]),
    watch: {
      "currentTrack": function() {
@@ -59,7 +68,7 @@
      window.scrollToBegin = this.scrollToBegin;
      window.scrollToBottom = this.scrollToBottom;
      window.jumpToFile = this.jumpToFile;
-
+     window.changeSort = this.changeSort;
    },
    created() {
      // eslint-disable-next-line no-undef
@@ -130,9 +139,21 @@
 
      jumpToFile() {
        window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.currentTrack]);
-     }
+     },
+     changeSort() {
+       this.$store.commit("changeSort");
+       var tempIndex = (this.playListSortIndex + 1) % 3;
+       if (tempIndex === 0) {
+         window.pyobject.eval_emacs_function("message", ["Sort by title."]);
+       } else if (tempIndex === 1) {
+         window.pyobject.eval_emacs_function("message", ["Sort by article."]);
+       } else if (tempIndex === 2) {
+         window.pyobject.eval_emacs_function("message", ["Sort by album."]);
+       }
+    },
    }
  }
+
 </script>
 
 <style scoped>
@@ -143,7 +164,19 @@
    white-space: nowrap;
    text-overflow: ellipsis;
  }
+ .top-bar {
+   padding-left: 20px;
+   padding-right: 20px;
+   padding-top: 5px;
+   padding-bottom: 5px;
 
+   display: flex;
+   position: sticky;
+   flex-direction: row;
+   align-items: center;
+
+   user-select: none;
+ }
  .item {
    padding-left: 20px;
    padding-right: 20px;
