@@ -104,6 +104,7 @@
     ("M->" . "js_scroll_to_bottom")
     ("g" . "js_jump_to_file")
     ("t" . "js_toggle_play_order")
+    ("S" . "js_change_sort")
     ("F" . "open_link")
     )
   "The keybinding of EAF Music Player."
