@@ -49,7 +49,6 @@
      "currentTrackIndex",
      "numberWidth",
      "fileInfos",
-     "playListSortIndex"
    ]),
    watch: {
      "currentTrack": function() {
@@ -68,7 +67,9 @@
      window.scrollToBegin = this.scrollToBegin;
      window.scrollToBottom = this.scrollToBottom;
      window.jumpToFile = this.jumpToFile;
-     window.changeSort = this.changeSort;
+     window.sortByTitle = this.sortByTitle;
+     window.sortByArtist = this.sortByArtist;
+     window.sortByAlbum = this.sortByAlbum;
    },
    created() {
      // eslint-disable-next-line no-undef
@@ -140,17 +141,18 @@
      jumpToFile() {
        window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.currentTrack]);
      },
-     changeSort() {
-       this.$store.commit("changeSort");
-       var tempIndex = (this.playListSortIndex + 1) % 3;
-       if (tempIndex === 0) {
-         window.pyobject.eval_emacs_function("message", ["Sort by title."]);
-       } else if (tempIndex === 1) {
-         window.pyobject.eval_emacs_function("message", ["Sort by article."]);
-       } else if (tempIndex === 2) {
-         window.pyobject.eval_emacs_function("message", ["Sort by album."]);
-       }
-    },
+     sortByTitle() {
+       this.$store.commit("changeSort", 0);
+       window.pyobject.eval_emacs_function("message", ["Sort by title."]);
+     },
+     sortByArtist() {
+       this.$store.commit("changeSort", 1);
+       window.pyobject.eval_emacs_function("message", ["Sort by artist."]);
+     },
+     sortByAlbum() {
+       this.$store.commit("changeSort", 2);
+       window.pyobject.eval_emacs_function("message", ["Sort by album."]);
+     }
    }
  }
 
@@ -163,7 +165,7 @@
 
    white-space: nowrap;
    text-overflow: ellipsis;
- }
+}
  .top-bar {
    padding-left: 20px;
    padding-right: 20px;

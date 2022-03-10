@@ -8,7 +8,6 @@ const store = new Vuex.Store({
     currentTrack: "",
     currentTrackIndex: 0,
     numberWidth: 0,
-    playListSortIndex: 0,
     fileInfos: []
   },
   getters: {
@@ -33,20 +32,19 @@ const store = new Vuex.Store({
       state.fileInfos = infos;
       state.numberWidth = state.fileInfos.length.toString().length;
     },
-    /*
-      * 0 : sort by name
-      * 1 : sort by artist
-      * 2 : sort by album
-      */
-    changeSort(state) {
-      state.playListSortIndex = (state.playListSortIndex + 1) % 3;
+      /*
+        * 0 : sort by name
+        * 1 : sort by artist
+        * 2 : sort by album
+        */
+    changeSort(state, selectIndex) {
       var currentSong = state.fileInfos[state.currentTrackIndex];
       state.fileInfos.sort(function (a, b) {
         var compareA, compareB;
-        if (state.playListSortIndex === 0) {
+        if (selectIndex === 0) {
           compareA = a.name;
           compareB = b.name;
-        } else if (state.playListSortIndex === 1) {
+        } else if (selectIndex === 1) {
           compareA = a.artist;
           compareB = b.artist;
         } else {
@@ -57,6 +55,7 @@ const store = new Vuex.Store({
       });
       state.currentTrackIndex = state.fileInfos.indexOf(currentSong);
     }
+    
   },
   
 })
