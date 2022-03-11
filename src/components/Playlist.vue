@@ -1,11 +1,4 @@
 <template>
-<div>
-  <div class="top-bar">
-    <div class="item-index"> #&nbsp; </div>
-    <div class="item-name"> TITLE </div>
-    <div class="item-artist"> ARTIST </div>
-    <div class="item-album"> ALBUM </div>
-  </div>
   <div
     ref="playlist"
     class="playlist">
@@ -29,7 +22,6 @@
       </div>
     </div>
   </div>
-<div>
 </template>
 
 <script>
@@ -165,20 +157,8 @@
 
    white-space: nowrap;
    text-overflow: ellipsis;
-}
- .top-bar {
-   padding-left: 20px;
-   padding-right: 20px;
-   padding-top: 5px;
-   padding-bottom: 5px;
-
-   display: flex;
-   position: sticky;
-   flex-direction: row;
-   align-items: center;
-
-   user-select: none;
  }
+
  .item {
    padding-left: 20px;
    padding-right: 20px;
