@@ -32,22 +32,17 @@ const store = new Vuex.Store({
       state.fileInfos = infos;
       state.numberWidth = state.fileInfos.length.toString().length;
     },
-      /*
-        * 0 : sort by name
-        * 1 : sort by artist
-        * 2 : sort by album
-        */
-    changeSort(state, selectIndex) {
+    changeSort(state, compareType) {
       var currentSong = state.fileInfos[state.currentTrackIndex];
       state.fileInfos.sort(function (a, b) {
         var compareA, compareB;
-        if (selectIndex === 0) {
+        if (compareType === "title") {
           compareA = a.name;
           compareB = b.name;
-        } else if (selectIndex === 1) {
+        } else if (compareType === "artist") {
           compareA = a.artist;
           compareB = b.artist;
-        } else {
+        } else if (compareType === "album") {
           compareA = a.album;
           compareB = b.album;
         }
