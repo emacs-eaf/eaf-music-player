@@ -100,7 +100,9 @@
        if (this.playOrder === "random") {
          this.playRandom();
        } else {
-         this.playItem(this.fileInfos[0]);
+         if (this.$refs.player.paused) {
+           this.playItem(this.fileInfos[this.currentTrackIndex]);
+         }
        }
      }
    },

@@ -30,10 +30,58 @@ const store = new Vuex.Store({
     },
     updateFileInfos(state, infos) {
       state.fileInfos = infos;
-
       state.numberWidth = state.fileInfos.length.toString().length;
+    },
+      /*
+        * 0 : sort by name
+        * 1 : sort by artist
+        * 2 : sort by album
+        */
+    changeSort(state, selectIndex) {
+      var currentSong = state.fileInfos[state.currentTrackIndex];
+      state.fileInfos.sort(function (a, b) {
+        var compareA, compareB;
+        if (selectIndex === 0) {
+          compareA = a.name;
+          compareB = b.name;
+        } else if (selectIndex === 1) {
+          compareA = a.artist;
+          compareB = b.artist;
+        } else {
+          compareA = a.album;
+          compareB = b.album;
+        }
+        return charCompare(compareA, compareB);
+      });
+      state.currentTrackIndex = state.fileInfos.indexOf(currentSong);
+    }
+    
+  },
+  
+})
+function charCompare(charA, charB) {
+  if (charA === undefined || charA === null || charA === '' || charA === ' ' || charA === '　') {
+    return -1;
+  }
+  if (charB === undefined || charB === null || charB === '' || charB === ' ' || charB === '　') {
+    return 1;
+  }
+  if ((notChinese(charA) && notChinese(charB))) {
+    return charA.localeCompare(charB);
+  } else if (!notChinese(charA) && !notChinese(charB)){
+    return charA .localeCompare(charB, 'zh-Hans-CN', {sensitivity: 'accent'});
+  } else {
+    if (notChinese(charA)) {
+      return -1;
+    } else {
+      return 1;
     }
   }
-})
+}
+
+function notChinese(char) {
+  const charCode = char.charCodeAt(0);
+  return 0 <= charCode && charCode <= 128;
+}
 
 export default store
