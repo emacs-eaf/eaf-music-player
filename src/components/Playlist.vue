@@ -133,16 +133,19 @@
      jumpToFile() {
        window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.currentTrack]);
      },
+
      sortByTitle() {
-       this.$store.commit("changeSort", 0);
+       this.$store.commit("changeSort", "title");
        window.pyobject.eval_emacs_function("message", ["Sort by title."]);
      },
+
      sortByArtist() {
-       this.$store.commit("changeSort", 1);
+       this.$store.commit("changeSort", "artist");
        window.pyobject.eval_emacs_function("message", ["Sort by artist."]);
      },
+     
      sortByAlbum() {
-       this.$store.commit("changeSort", 2);
+       this.$store.commit("changeSort", "album");
        window.pyobject.eval_emacs_function("message", ["Sort by album."]);
      }
    }
