@@ -41,11 +41,11 @@ class AppBuffer(BrowserBuffer):
         self.load_index_html(__file__)
 
     def init_app(self):
-        self.buffer_widget.eval_js('''initPlaylistColor(\"{}\", \"{}\")'''.format(self.theme_background_color, self.theme_foreground_color))
+        self.buffer_widget.eval_js_function('''initPlaylistColor''', self.theme_background_color, self.theme_foreground_color)
 
-        self.buffer_widget.eval_js('''initPanelColor(\"{}\", \"{}\")'''.format(self.panel_background_color, self.theme_foreground_color))
+        self.buffer_widget.eval_js_function('''initPanelColor''', self.panel_background_color, self.theme_foreground_color)
 
-        self.buffer_widget.eval_js('''initPlayOrder(\"{}\")'''.format(get_emacs_var("eaf-music-play-order")))
+        self.buffer_widget.eval_js_function('''initPlayOrder''', get_emacs_var("eaf-music-play-order"))
 
         files = []
 
@@ -54,7 +54,7 @@ class AppBuffer(BrowserBuffer):
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
 
-        self.buffer_widget.eval_js('''addFiles({});'''.format(json.dumps(self.pick_music_info(files))))
+        self.buffer_widget.eval_js_function('''addFiles''', self.pick_music_info(files))
 
     def pick_music_info(self, files):
         infos = []
