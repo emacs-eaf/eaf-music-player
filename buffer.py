@@ -37,6 +37,8 @@ class AppBuffer(BrowserBuffer):
 
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
+        
+        self.change_title("EAF Music Player")
 
         self.load_index_html(__file__)
 
