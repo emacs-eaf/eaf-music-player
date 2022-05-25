@@ -25,34 +25,34 @@
      return {
        activeLyricRowIndex: 0,
        backgroundColor1: "",
-	     lyric0: "",
+       lyric0: "",
        lyric1: "",
-	     lyric2: "",
-	     lyric3: "",
-	     lyric4: "",
-	     lyric5: "",
-	     lyric6: "",
-	     lyric7: "",
-	     lyric8: "",
+       lyric2: "",
+       lyric3: "",
+       lyric4: "",
+       lyric5: "",
+       lyric6: "",
+       lyric7: "",
+       lyric8: "",
      }
    },
    computed: mapState([
-	   "currentTrack",
-	   "currentTrackIndex",
-	   "numberWidth",
-	   "fileInfos",
-	   "currentLyric",
-	   "currentCover"
+     "currentTrack",
+     "currentTrackIndex",
+     "numberWidth",
+     "fileInfos",
+     "currentLyric",
+     "currentCover"
    ]),
    props: {
-	   currentTime: String,
-	   foregroundColor: String,
+     currentTime: String,
+     foregroundColor: String,
    },
    watch: {
-	   currentTime: function(newVal) {
-	     var activeLyricRows = this.currentLyric.filter((item) => {
-				 return parseInt(item.second) <= this.parseToSecond(newVal);
-			 });
+     currentTime: function(newVal) {
+       var activeLyricRows = this.currentLyric.filter((item) => {
+         return parseInt(item.second) <= this.parseToSecond(newVal);
+       });
        if (activeLyricRows.length <= 0) {
          return ;
        }
