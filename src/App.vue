@@ -1,27 +1,19 @@
 <template>
   <div id="app">
-    <Playlist
-      class="playlist"
-      :style="{ 'margin-bottom': panelHeight }"/>
-    <Panel
-      :style="{ 'height': panelHeight }">
-    </Panel>
+    <Main />
   </div>
 </template>
 
 <script>
- import Playlist from './components/Playlist.vue'
- import Panel from './components/Panel.vue'
+ import Main from './components/Main.vue'
 
  export default {
    name: 'App',
    components: {
-     Playlist,
-     Panel
+     Main
    },
    data() {
      return {
-       panelHeight: "90px"
      }
    },
    props: {
@@ -33,14 +25,8 @@
 
 <style>
  #app {
-   display: flex;
-   flex-direction: column;
-   align-items: center;
-   justify-content: center;
    width: 100%;
    height: 100%;
-
-   position: relative;
  }
 
  html, body {
@@ -52,9 +38,5 @@
 
  ::-webkit-scrollbar {
    display: none;
- }
-
- .playlist {
-   overflow: scroll;
  }
 </style>

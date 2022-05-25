@@ -26,14 +26,11 @@
 
 <script>
  import { mapState } from "vuex";
- import { QWebChannel } from "qwebchannel";
 
  export default {
    name: 'Playlist',
    data() {
      return {
-       backgroundColor: "",
-       foregroundColor: "",
      }
    },
    computed: mapState([
@@ -48,9 +45,11 @@
      }
    },
    props: {
+     backgroundColor: String,
+     foregroundColor: String,
+     pyobject: Object,
    },
    mounted() {
-     window.initPlaylistColor = this.initPlaylistColor;
      window.addFiles = this.addFiles;
      window.scrollUp = this.scrollUp;
      window.scrollDown = this.scrollDown;
@@ -63,18 +62,7 @@
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
    },
-   created() {
-     // eslint-disable-next-line no-undef
-     new QWebChannel(qt.webChannelTransport, channel => {
-       window.pyobject = channel.objects.pyobject;
-     });
-   },
    methods: {
-     initPlaylistColor(backgroundColor, foregroundColor) {
-       this.backgroundColor = backgroundColor;
-       this.foregroundColor = foregroundColor;
-     },
-
      addFiles(files) {
        this.$store.commit("updateFileInfos", files);
      },
@@ -181,10 +169,14 @@
 
  .item-name {
    width: 40%;
+   text-overflow: ellipsis;
+   overflow:hidden
  }
 
  .item-artist {
    width: 20%;
+   text-overflow: ellipsis;
+   overflow:hidden
  }
 
  .item-album {

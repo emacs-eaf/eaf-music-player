@@ -8,7 +8,9 @@ const store = new Vuex.Store({
     currentTrack: "",
     currentTrackIndex: 0,
     numberWidth: 0,
-    fileInfos: []
+    fileInfos: [],
+    currentLyric: "",
+    currentCover: "",  
   },
   getters: {
     currentTrack: state => {
@@ -49,6 +51,12 @@ const store = new Vuex.Store({
         return charCompare(compareA, compareB);
       });
       state.currentTrackIndex = state.fileInfos.indexOf(currentSong);
+    },
+    updateLyric(state, lyric) {
+      state.currentLyric = lyric;
+    },
+    updateCover(state, url) {
+      state.currentCover = url;
     }
     
   },

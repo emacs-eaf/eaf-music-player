@@ -9,7 +9,7 @@
     <div
       class="info"
       :style="{ 'color': foregroundColor }">
-      <div>
+      <div :style="{ 'font-weight':'bold'}">
         {{ name }}
       </div>
       <div>
@@ -73,6 +73,7 @@
 <script>
  import { mapState } from "vuex";
  import albumArt from "album-art"
+ import song from '@/song.js';
 
  export default {
    name: 'Panel',
@@ -104,6 +105,9 @@
            this.playItem(this.fileInfos[this.currentTrackIndex]);
          }
        }
+     },
+     currentTime: function(newVal) {
+       this.$emit('getCurrentTime', newVal);
      }
    },
    props: {
@@ -152,6 +156,17 @@
            this.currentCover = url;
          }
        })
+       
+       albumArt(item.artist, {album: item.album, size: 'large'}, (error, url) => {
+         console.log(error, url);
+
+         if (error) {
+           this.$store.commit("updateCover", "");
+         } else {
+           this.$store.commit("updateCover", url);
+         }
+       })
+       this.getLyric();
      },
 
      togglePlayOrder() {
@@ -251,7 +266,39 @@
 
      playAgain() {
        this.playItem(this.fileInfos[this.currentTrackIndex]);
-     }
+     },
+
+     getLyric() {
+       let currentSong = this.fileInfos[this.currentTrackIndex];
+       song.Search.getLyric(currentSong, (rawLyric) => {
+         let lines = rawLyric.split('\n');
+
+         let newLyric = [];
+         lines.forEach((line, index) => {
+           let newLine = {};
+           if (!line) {
+             return ;
+           }
+
+           let pattern = /\[\S*\]/g;
+           let time = line.match(pattern)[0];
+           let lineLyric = line.replace(time, '');
+
+           time = time.replace(/\[/, '');
+           time = time.replace(/\]/, '');
+
+           newLine.index = index;
+           newLine.time = time;
+           newLine.content = lineLyric.trim();
+           if (newLine.content == '') {
+             newLine.content = "-";
+           }
+           newLine.second = (time.split(":")[0] * 60 + parseFloat(time.split(":")[1])).toFixed(0);
+           newLyric.push(newLine);
+         })
+         this.$store.commit("updateLyric", newLyric);
+       });
+     },
    }
  }
 </script>
