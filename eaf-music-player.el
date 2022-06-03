@@ -137,5 +137,19 @@
 (setq eaf-music-player-module-path (concat (file-name-directory load-file-name) "buffer.py"))
 (add-to-list 'eaf-app-module-path-alist '("music-player" . eaf-music-player-module-path))
 
+(defcustom is-open-lyric-service t
+  "Whether run NeteaseCloudMusicApi."
+  :type 'boolean)
+
+(defcustom api-port "4000"
+  "Default api port."
+  :type 'string)
+
+(defun eaf-music-player-open-lyric ()
+  (interactive)
+  (if is-open-lyric-service
+      (message "API is already running")
+    (eaf-call-async "execute_function" eaf--buffer-id "run_api")))
+
 (provide 'eaf-music-player)
 ;;; eaf-music-player.el ends here

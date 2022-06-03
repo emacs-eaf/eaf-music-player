@@ -88,7 +88,8 @@
        foregroundColor: "",
        /* Download icon from https://www.iconfont.cn/collections/detail?spm=a313x.7781069.0.da5a778a4&cid=18739 */
        playIcon: "play-circle",
-       playOrder: "list"
+       playOrder: "list",
+       port: "",
      }
    },
    computed: mapState([
@@ -111,6 +112,7 @@
      }
    },
    props: {
+     pyobject: Object,
    },
    mounted() {
      window.initPanelColor = this.initPanelColor;
@@ -122,6 +124,7 @@
      window.playPrev = this.playPrev;
      window.playRandom = this.playRandom;
      window.togglePlayOrder = this.togglePlayOrder;
+     window.initPort = this.initPort;
 
      let that = this;
 
@@ -268,9 +271,13 @@
        this.playItem(this.fileInfos[this.currentTrackIndex]);
      },
 
+     initPort(port) {
+       this.port = port;
+     },
+     
      getLyric() {
        let currentSong = this.fileInfos[this.currentTrackIndex];
-       song.Search.getLyric(currentSong, (rawLyric) => {
+       song.Search.getLyric(currentSong, this.port, (rawLyric) => {
          let lines = rawLyric.split('\n');
 
          let newLyric = [];

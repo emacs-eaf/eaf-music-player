@@ -21,7 +21,7 @@
 
 from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
-from PyQt6.QtCore import QUrl
+from PyQt6.QtCore import QUrl, QThread
 from core.webengine import BrowserBuffer
 from core.utils import interactive
 from functools import cmp_to_key
@@ -37,6 +37,9 @@ class AppBuffer(BrowserBuffer):
 
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
+        self.api_threads = []
+        if get_emacs_var("is-open-lyric-service"):
+            self.run_api()
         
         self.change_title("EAF Music Player")
 
@@ -57,6 +60,7 @@ class AppBuffer(BrowserBuffer):
             files.append(self.first_file)
 
         self.buffer_widget.eval_js_function('''addFiles''', self.pick_music_info(files))
+        self.buffer_widget.eval_js_function('''initPort''', get_emacs_var('api-port'))
 
     def pick_music_info(self, files):
         infos = []
@@ -96,3 +100,18 @@ class AppBuffer(BrowserBuffer):
 
     def marker_offset_y(self):
         return 8
+
+    def run_api(self):
+        thread = RunAPI(os.path.join(self.config_dir), get_emacs_var("api-port"))
+        self.api_threads.append(thread)
+        thread.start()
+
+class RunAPI(QThread):
+    def __init__(self, directory, port):
+        QThread.__init__(self)
+        self.port = port
+        self.api_directory = os.path.join(directory, "music-player", "NeteaseCloudMusicApi", "app.js")
+
+    def run(self):
+        os.system('PORT=' + self.port + ' node ' + self.api_directory)
+        

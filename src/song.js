@@ -1,64 +1,67 @@
+import axios from 'axios';
+
+const HOST = 'http://localhost:';
+
+axios.defaults.withCredentials = true;
+
+const API = {};
+API.LYRIC = '/lyric';
+API.SEARCH = '/search';
+API.SONG = '/song/url';
+
 let Search = {};
 
-const {
-  song_url,
-  lyric,
-  search,
-} = require('NeteaseCloudMusicApi');
+Search.search = function(keyword, limit, port, callback) {
+  let url = HOST + port + API.SEARCH + '?keywords=' + keyword + '?limit=' + limit + '?type=1';
 
-Search.searchSong = async function(keyword, limit, callback) {
-  try {
-    let result = await search({
-      type: '1',
-      limit: limit,
-      keywords: keyword
-    }).then((response) =>{
-      let data = response.body;
-      if (data.code == 200) {
-        callback && callback(data);
-      }
-    });
-  } catch (error) {
-      console.log(error);
-      callback && callback([]);
-  }
+  axios.get(url)
+       .then((response) => {
+         let data = response.data;
+         if (data.code == 200) {
+           callback && callback(data);
+         }
+       })
+       .catch((error) => {
+         console.log(error);
+         callback && callback([]);
+       });
 };
 
-Search.getSongId = function(song, callback) {
+Search.getSongId = function(song, port, callback) {
   let keyword = song.name + ' ' + song.artist.split('/')[0];
-
-  searchSong(keyword, '100', (data) => {
+  Search.search(keyword, '100', port, (data) => {
     let songs = data.result.songs;
-    
     var sameSong = songs.filter((item) => {
       return item.name === song.name &&
              item.artists[0].name === song.artist.split('/')[0];
     });
     if (sameSong.legth != 0) {
-      console.log(sameSong.length);
       callback(sameSong);
     }
   });
 };
 
-Search.getLyric = async function(song, callback) {
-  getSongId(song, async (data) => {
+Search.getLyric = function(song, port, callback) {
+  Search.getSongId(song, port, (data) => {
     let songId = data[0].id;
-    try {
-      let result = await lyric({
-        id: songId,
-      })
-      .then((response) => {
-        callback && callback(response);
-        console.log(response);
-      });
-    } catch (error) {
-      callback && callback([]);
-      console.log(error);
-    }
+    let url = HOST + port + API.LYRIC + '?id=' + songId;
+
+    axios.get(url)
+         .then((response) => {
+           let data = response.data;
+           if (data.code == 200) {
+             let lyric = data.lrc.lyric;
+             callback && callback(lyric);
+           }
+         })
+         .catch((error) => {
+           console.log(error);
+           callback && callback([]);
+         });
   });
 };
 
 export default {
   Search,
 };
+

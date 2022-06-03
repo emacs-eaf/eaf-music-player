@@ -124,17 +124,17 @@
 
      sortByTitle() {
        this.$store.commit("changeSort", "title");
-       window.pyobject.eval_emacs_function("message", ["Sort by title."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by title."]);
      },
 
      sortByArtist() {
        this.$store.commit("changeSort", "artist");
-       window.pyobject.eval_emacs_function("message", ["Sort by artist."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by artist."]);
      },
      
      sortByAlbum() {
        this.$store.commit("changeSort", "album");
-       window.pyobject.eval_emacs_function("message", ["Sort by album."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by album."]);
      }
    }
  }

@@ -18,6 +18,7 @@
       </LyricPanel>
       <Panel
         @getCurrentTime="getCurrentTime"
+        :pyobject="pyobject"
         :style="{ 'height': panelHeight }">
       </Panel>
     </div>
