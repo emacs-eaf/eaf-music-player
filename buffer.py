@@ -25,7 +25,7 @@ from PyQt6.QtCore import QUrl, QThread
 from core.webengine import BrowserBuffer
 from core.utils import interactive
 from functools import cmp_to_key
-from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs
+from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs, touch
 import os
 import json
 import mimetypes
@@ -38,8 +38,12 @@ class AppBuffer(BrowserBuffer):
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
         self.api_threads = []
+        self.api_dir = os.path.join(self.config_dir, "music-player","NeteaseCloudMusicApi")
         if get_emacs_var("is-open-lyric-service"):
-            self.run_api()
+            if not os.path.exists(self.api_dir):
+                self.install_api()
+            else:
+                self.run_api()
         
         self.change_title("EAF Music Player")
 
@@ -101,8 +105,23 @@ class AppBuffer(BrowserBuffer):
     def marker_offset_y(self):
         return 8
 
+    def install_api(self):
+        touch(os.path.join(self.config_dir, "music-player"))
+        os.chdir(os.path.join(self.config_dir, "music-player"))
+        if not os.path.exists(self.api_dir):
+            os.system("git clone https://github.com/Binaryify/NeteaseCloudMusicApi && cd NeteaseCloudMusicApi && npm install")
+            
+
+    def update_api(self):
+        touch(os.path.join(self.config_dir, "music-player"))
+        os.chdir(os.path.join(self.config_dir, "music-player"))
+        if not os.path.exists(self.api_dir):
+            os.system("git clone https://github.com/Binaryify/NeteaseCloudMusicApi && cd NeteaseCloudMusicApi && npm install")
+        else:
+            os.system("git pull && cd NeteaseCloudMusicApi && npm install")
+        
     def run_api(self):
-        thread = RunAPI(os.path.join(self.config_dir), get_emacs_var("api-port"))
+        thread = RunAPI(self.config_dir, get_emacs_var("api-port"))
         self.api_threads.append(thread)
         thread.start()
 

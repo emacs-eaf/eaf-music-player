@@ -148,8 +148,16 @@
 (defun eaf-music-player-open-lyric ()
   (interactive)
   (if is-open-lyric-service
-      (message "API is already running")
+      (message "API is already running!")
     (eaf-call-async "execute_function" eaf--buffer-id "run_api")))
+
+(defun eaf-music-player-install-api()
+  (interactive)
+  (eaf-call-async "execute_function" eaf--buffer-id "install_api"))
+
+(defun eaf-music-player-update-api()
+  (interactive)
+  (eaf-call-async "execute_function" eaf--buffer-id "update_api"))
 
 (provide 'eaf-music-player)
 ;;; eaf-music-player.el ends here
