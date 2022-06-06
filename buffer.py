@@ -25,7 +25,7 @@ from PyQt6.QtCore import QUrl, QThread
 from core.webengine import BrowserBuffer
 from core.utils import interactive
 from functools import cmp_to_key
-from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs, touch
+from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs
 import os
 import json
 import mimetypes
