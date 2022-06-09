@@ -169,7 +169,20 @@
            this.$store.commit("updateCover", url);
          }
        })
-       this.getLyric();
+       
+       /*
+          When the API starts running, the first song starts playing.
+          And it will cause the function getLyric() can't get the lyrics,
+          because the API is not fully established yet.
+          So when we play the first song, we need to wait a second for the API to build.
+        */
+       if (this.currentTrackIndex === 0) {
+         setTimeout(() => {
+           this.getLyric();
+         }, 1000)
+       } else {
+         this.getLyric();
+       }
      },
 
      togglePlayOrder() {
