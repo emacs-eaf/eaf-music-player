@@ -3,7 +3,7 @@
     "taglib"
   ],
   "emerge": [
-    "media-libs/libtaginfo"
+    "media-libs/taglib"
   ],
   "apt": [
     "libtag1-dev"
