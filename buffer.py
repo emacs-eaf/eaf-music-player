@@ -22,10 +22,10 @@
 from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import QUrl
-from core.webengine import BrowserBuffer
-from core.utils import interactive
+from core.webengine import BrowserBuffer    # type: ignore
+from core.utils import interactive    # type: ignore
 from functools import cmp_to_key
-from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs
+from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs    # type: ignore
 import os
 import json
 import mimetypes
@@ -37,22 +37,42 @@ class AppBuffer(BrowserBuffer):
 
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
+        self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
+        self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
+        if not os.path.exists(self.icon_cache_dir):
+            os.makedirs(self.icon_cache_dir)
+        
+        # Change svg file color on Python side, it's hard to change svg color on JavaScript.
+        for svg in os.listdir(self.icon_dir):
+            with open(os.path.join(self.icon_dir, svg), encoding="utf-8", errors="ignore") as f:
+                svg_content = f.read().replace("<path", '''<path fill="{}"'''.format(self.theme_foreground_color))
+                with open(os.path.join(self.icon_cache_dir, svg), "w") as svg_file:
+                    svg_file.write(svg_content)
         
         self.change_title("EAF Music Player")
 
         self.load_index_html(__file__)
 
     def init_app(self):
-        self.buffer_widget.eval_js_function('''initPlaylistColor''', self.theme_background_color, self.theme_foreground_color)
+        self.buffer_widget.eval_js_function(
+            '''initPlaylist''', 
+            self.theme_background_color, 
+            self.theme_foreground_color)
 
-        self.buffer_widget.eval_js_function('''initPanelColor''', self.panel_background_color, self.theme_foreground_color)
-
-        self.buffer_widget.eval_js_function('''initPlayOrder''', get_emacs_var("eaf-music-play-order"))
+        self.buffer_widget.eval_js_function(
+            '''initPanel''', 
+            get_emacs_var("eaf-music-play-order"), 
+            self.panel_background_color, 
+            self.theme_foreground_color,
+            self.icon_cache_dir,
+            os.path.sep
+        )
 
         files = []
 
         if os.path.isdir(self.first_file):
-            files = list(filter(lambda f : os.path.isfile(f), [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.first_file) for f in filenames]))
+            files = list(filter(lambda f : os.path.isfile(f), 
+                                [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.first_file) for f in filenames]))
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
 

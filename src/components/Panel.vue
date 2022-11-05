@@ -2,10 +2,12 @@
   <div
     class="panel"
     :style="{ 'background': backgroundColor }">
-    <img
-      v-if="currentCover"
-      class="cover"
-      :src="currentCover"/>
+    <div class="coverBox">
+      <img
+        v-if="currentCover"
+        class="cover"
+        :src="currentCover"/>
+    </div>
     <div
       class="info"
       :style="{ 'color': foregroundColor }">
@@ -19,34 +21,30 @@
     <div
       class="control"
       :style="{ 'color': foregroundColor }">
-      <icon
+      <img
         class="repeat"
         :style="{ 'color': foregroundColor }"
-        :name="playOrder"
-        :scale="2.5"
-        @click.native="togglePlayOrder"
-      ></icon>
-      <icon
+        :src="fileIconPath(playOrderIcon)"
+        @click="togglePlayOrder"
+      />
+      <img
         class="backward"
         :style="{ 'color': foregroundColor }"
-        name="step-backward"
-        :scale="4"
-        @click.native="playPrev"
-      ></icon>
-      <icon
+        :src="fileIconPath(stepBackwardIcon)"
+        @click="playPrev"
+      />
+      <img
         class="play"
         :style="{ 'color': foregroundColor }"
-        :name="playIcon"
-        :scale="6"
-        @click.native="toggle"
-      ></icon>
-      <icon
+        :src="fileIconPath(playIcon)"
+        @click="toggle"
+      />
+      <img
         class="forward"
         :style="{ 'color': foregroundColor }"
-        name="step-forward"
-        :scale="4"
-        @click.native="playNext"
-      ></icon>
+        :src="fileIconPath(stepForwardIcon)"
+        @click="playNext"
+      />
       <div class="current-time">
         {{ currentTime }}
       </div>
@@ -80,14 +78,18 @@
      return {
        currentTime: "",
        currentCover: "",
+       iconCacheDir: "",
+       pathSep: "",
        duration: "",
        name: "",
        artist: "",
        backgroundColor: "",
        foregroundColor: "",
        /* Download icon from https://www.iconfont.cn/collections/detail?spm=a313x.7781069.0.da5a778a4&cid=18739 */
+       stepBackwardIcon: "step-backward",
+       stepForwardIcon: "step-forward",
        playIcon: "play-circle",
-       playOrder: "list"
+       playOrderIcon: "list"
      }
    },
    computed: mapState([
@@ -97,7 +99,7 @@
    ]),
    watch: {
      "fileInfos": function() {
-       if (this.playOrder === "random") {
+       if (this.playOrderIcon === "random") {
          this.playRandom();
        } else {
          if (this.$refs.player.paused) {
@@ -109,8 +111,7 @@
    props: {
    },
    mounted() {
-     window.initPanelColor = this.initPanelColor;
-     window.initPlayOrder = this.initPlayOrder;
+     window.initPanel = this.initPanel;
      window.forward = this.forward;
      window.backward = this.backward;
      window.toggle = this.toggle;
@@ -155,32 +156,35 @@
      },
 
      togglePlayOrder() {
-       if (this.playOrder === "list") {
-         this.playOrder = "random";
-       } else if (this.playOrder === "random") {
-         this.playOrder = "repeat";
-       } else if (this.playOrder === "repeat") {
-         this.playOrder = "list";
+       if (this.playOrderIcon === "list") {
+         this.playOrderIcon = "random";
+       } else if (this.playOrderIcon === "random") {
+         this.playOrderIcon = "repeat";
+       } else if (this.playOrderIcon === "repeat") {
+         this.playOrderIcon = "list";
        }
      },
 
      handlePlayFinish() {
-       if (this.playOrder === "list") {
+       if (this.playOrderIcon === "list") {
          this.playNext();
-       } else if (this.playOrder === "random") {
+       } else if (this.playOrderIcon === "random") {
          this.playRandom();
-       } else if (this.playOrder === "repeat") {
+       } else if (this.playOrderIcon === "repeat") {
          this.playAgain();
        }
      },
 
-     initPanelColor(backgroundColor, foregroundColor) {
+     initPanel(playOrderIcon, backgroundColor, foregroundColor, iconCacheDir, pathSep) {
+       this.playOrderIcon = playOrderIcon;
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
+       this.iconCacheDir = iconCacheDir;
+       this.pathSep = pathSep;
      },
-
-     initPlayOrder(playOrder) {
-       this.playOrder = playOrder;
+     
+     fileIconPath(iconFile) {
+       return this.iconCacheDir + this.pathSep + iconFile + ".svg";
      },
 
      getBarColors() {
@@ -270,9 +274,12 @@
    align-items: center;
  }
 
- .cover {
+ .coverBox {
    width: 60px;
    margin-left: 30px;
+ }
+ 
+ .cover {
  }
 
  .info {
@@ -305,26 +312,31 @@
 
  .backward {
    cursor: pointer;
+   height: 60px;
  }
 
  .forward {
    cursor: pointer;
+   height: 60px;
  }
 
  .play {
    margin-left: 10px;
    margin-right: 10px;
    cursor: pointer;
+   height: 60px;
  }
 
  .play-order {
    margin-right: 20px;
+   height: 60px;
  }
 
  .repeat {
    margin-right: 20px;
+   height: 32px;
  }
-
+ 
  .current-time {
    margin-left: 20px;
    margin-right: 5px;

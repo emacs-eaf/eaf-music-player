@@ -50,7 +50,7 @@
    props: {
    },
    mounted() {
-     window.initPlaylistColor = this.initPlaylistColor;
+     window.initPlaylist = this.initPlaylist;
      window.addFiles = this.addFiles;
      window.scrollUp = this.scrollUp;
      window.scrollDown = this.scrollDown;
@@ -70,7 +70,7 @@
      });
    },
    methods: {
-     initPlaylistColor(backgroundColor, foregroundColor) {
+     initPlaylist(backgroundColor, foregroundColor) {
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
      },
