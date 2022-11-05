@@ -312,12 +312,12 @@
 
  .backward {
    cursor: pointer;
-   height: 60px;
+   height: 48px;
  }
 
  .forward {
    cursor: pointer;
-   height: 60px;
+   height: 48px;
  }
 
  .play {
@@ -334,7 +334,7 @@
 
  .repeat {
    margin-right: 20px;
-   height: 32px;
+   height: 24px;
  }
  
  .current-time {
