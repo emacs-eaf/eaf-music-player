@@ -280,6 +280,7 @@
  }
  
  .cover {
+   width: 100%;
  }
 
  .info {
