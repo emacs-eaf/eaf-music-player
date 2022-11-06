@@ -185,6 +185,9 @@
 
  .item-artist {
    width: 20%;
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
  }
 
  .item-album {
