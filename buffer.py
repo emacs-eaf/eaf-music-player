@@ -19,15 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
-from PyQt6.QtCore import QUrl
 from core.webengine import BrowserBuffer    # type: ignore
-from core.utils import interactive    # type: ignore
 from functools import cmp_to_key
-from core.utils import eval_in_emacs, get_emacs_var, message_to_emacs    # type: ignore
+from core.utils import get_emacs_var
 import os
-import json
 import mimetypes
 import taglib
 
