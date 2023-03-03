@@ -89,7 +89,8 @@
        stepBackwardIcon: "step-backward",
        stepForwardIcon: "step-forward",
        playIcon: "play-circle",
-       playOrderIcon: "list"
+       playOrderIcon: "list",
+       iconKey: 1
      }
    },
    computed: mapState([
@@ -181,10 +182,12 @@
        this.foregroundColor = foregroundColor;
        this.iconCacheDir = iconCacheDir;
        this.pathSep = pathSep;
+
+       this.iconKey = new Date();
      },
      
      fileIconPath(iconFile) {
-       return this.iconCacheDir + this.pathSep + iconFile + ".svg";
+       return this.iconCacheDir + this.pathSep + iconFile + ".svg" + "?cache=" + this.iconKey;
      },
 
      getBarColors() {

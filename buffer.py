@@ -22,7 +22,7 @@
 from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
-from core.utils import get_emacs_var
+from core.utils import get_emacs_var, interactive, get_emacs_theme_foreground, get_emacs_theme_background
 import os
 import mimetypes
 import taglib
@@ -37,32 +37,50 @@ class AppBuffer(BrowserBuffer):
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
+
+        self.init_icons()
         
+        self.change_title("EAF Music Player")
+
+        self.load_index_html(__file__)
+
+    def init_icons(self):
         # Change svg file color on Python side, it's hard to change svg color on JavaScript.
         for svg in os.listdir(self.icon_dir):
             with open(os.path.join(self.icon_dir, svg), encoding="utf-8", errors="ignore") as f:
                 svg_content = f.read().replace("<path", '''<path fill="{}"'''.format(self.theme_foreground_color))
                 with open(os.path.join(self.icon_cache_dir, svg), "w") as svg_file:
                     svg_file.write(svg_content)
-        
-        self.change_title("EAF Music Player")
+    @interactive
+    def update_theme(self):
+        self.theme_foreground_color = get_emacs_theme_foreground()
+        self.theme_background_color = get_emacs_theme_background()
+        self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
 
-        self.load_index_html(__file__)
+        self.init_icons()
 
-    def init_app(self):
+        self.buffer_widget.eval_js("document.body.style.background = '{}'; document.body.style.color = '{}'".format(
+            self.theme_background_color, self.theme_foreground_color))
+
+        self.init_vars()
+
+    def init_vars(self):
         self.buffer_widget.eval_js_function(
-            '''initPlaylist''', 
-            self.theme_background_color, 
+            '''initPlaylist''',
+            self.theme_background_color,
             self.theme_foreground_color)
 
         self.buffer_widget.eval_js_function(
-            '''initPanel''', 
-            get_emacs_var("eaf-music-play-order"), 
-            self.panel_background_color, 
+            '''initPanel''',
+            get_emacs_var("eaf-music-play-order"),
+            self.panel_background_color,
             self.theme_foreground_color,
             self.icon_cache_dir,
             os.path.sep
         )
+
+    def init_app(self):
+        self.init_vars()
 
         files = []
 
