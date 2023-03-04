@@ -53,15 +53,10 @@ class AppBuffer(BrowserBuffer):
                     svg_file.write(svg_content)
     @interactive
     def update_theme(self):
-        self.theme_foreground_color = get_emacs_theme_foreground()
-        self.theme_background_color = get_emacs_theme_background()
+        super().update_theme()
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
 
         self.init_icons()
-
-        self.buffer_widget.eval_js("document.body.style.background = '{}'; document.body.style.color = '{}'".format(
-            self.theme_background_color, self.theme_foreground_color))
-
         self.init_vars()
 
     def init_vars(self):
