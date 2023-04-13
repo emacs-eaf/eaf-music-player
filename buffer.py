@@ -19,10 +19,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
-from core.utils import get_emacs_var, interactive, get_emacs_theme_foreground, get_emacs_theme_background
+from core.utils import get_emacs_var, interactive, get_emacs_theme_foreground, get_emacs_theme_background, message_to_emacs
 import os
 import mimetypes
 import taglib
@@ -30,6 +31,8 @@ import taglib
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
+
+        self.music_infos = []
 
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
@@ -85,7 +88,9 @@ class AppBuffer(BrowserBuffer):
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
 
-        self.buffer_widget.eval_js_function('''addFiles''', self.pick_music_info(files))
+        self.music_infos = self.pick_music_info(files)
+
+        self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
 
     def pick_music_info(self, files):
         infos = []
@@ -120,8 +125,34 @@ class AppBuffer(BrowserBuffer):
             else:
                 return 0
 
-    def marker_offset_x(self):
-        return 0
+    @QtCore.pyqtSlot(str)
+    def show_tag_info(self, track):
+        for info in self.music_infos:
+            if info["path"] == track:
+                message_to_emacs(f"Tag info: {info['name']} / {info['artist']} / {info['album']} ")
+                break
 
-    def marker_offset_y(self):
-        return 8
+    @QtCore.pyqtSlot(str)
+    def convert_tag_coding(self, track):
+        for info in self.music_infos:
+            if info["path"] == track:
+                name = self.convert_to_utf8(info["name"])
+                artist = self.convert_to_utf8(info["artist"])
+                album = self.convert_to_utf8(info["album"])
+
+                audio = taglib.File(track)
+                audio.tags['TITLE'] = name
+                audio.tags['ARTIST'] = artist
+                audio.tags['ALBUM'] = album
+                audio.save()
+
+                self.buffer_widget.eval_js_function("updateTagInfo", track, name, artist, album)
+
+                message_to_emacs(f"Convert tag info to: {name} / {artist} / {album}")
+                break
+
+    def convert_to_utf8(self, gbk_str):
+        try:
+            return gbk_str.encode('latin1').decode('gbk')
+        except UnicodeDecodeError:
+            return gbk_str

@@ -37,6 +37,7 @@
      }
    },
    computed: mapState([
+     "currentItem",
      "currentTrack",
      "currentTrackIndex",
      "numberWidth",
@@ -62,6 +63,9 @@
      window.sortByTitle = this.sortByTitle;
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
+     window.showTagInfo = this.showTagInfo;
+     window.convertTagCoding = this.convertTagCoding;
+     window.updateTagInfo = this.updateTagInfo;
    },
    created() {
      // eslint-disable-next-line no-undef
@@ -147,6 +151,18 @@
      sortByAlbum() {
        this.$store.commit("changeSort", "album");
        window.pyobject.eval_emacs_function("message", ["Sort by album."]);
+     },
+
+     showTagInfo() {
+       window.pyobject.show_tag_info(this.currentTrack);
+     },
+
+     convertTagCoding() {
+       window.pyobject.convert_tag_coding(this.currentTrack);
+     },
+
+     updateTagInfo(track, name, artist, album) {
+       this.$store.commit("updateTrackTagInfo", { track, name, artist, album });
      }
    }
  }

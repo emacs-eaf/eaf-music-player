@@ -108,6 +108,8 @@
     ("C-t" . "js_sort_by_artist")
     ("C-m" . "js_sort_by_album")
     ("F" . "open_link")
+    ("s" . "js_show_tag_info")
+    ("T" . "js_convert_tag_coding")
     )
   "The keybinding of EAF Music Player."
   :type 'cons)
