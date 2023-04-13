@@ -196,6 +196,9 @@
  }
 
  .item-name {
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
    width: 40%;
  }
 
