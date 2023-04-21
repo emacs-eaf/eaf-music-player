@@ -314,6 +314,10 @@
    justify-content: flex-end;
  }
 
+ ::v-deep canvas {
+   height: 60;
+ }
+
  .backward {
    cursor: pointer;
    height: 48px;
