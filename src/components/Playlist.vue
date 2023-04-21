@@ -44,8 +44,12 @@
      "fileInfos",
    ]),
    watch: {
-     "currentTrack": function() {
-       this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
+     currentTrack: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         window.pyobject.vue_update_current_track(val);
+         this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
+       }
      }
    },
    props: {
@@ -63,8 +67,6 @@
      window.sortByTitle = this.sortByTitle;
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
-     window.showTagInfo = this.showTagInfo;
-     window.convertTagCoding = this.convertTagCoding;
      window.updateTagInfo = this.updateTagInfo;
    },
    created() {
@@ -151,14 +153,6 @@
      sortByAlbum() {
        this.$store.commit("changeSort", "album");
        window.pyobject.eval_emacs_function("message", ["Sort by album."]);
-     },
-
-     showTagInfo() {
-       window.pyobject.show_tag_info(this.currentTrack);
-     },
-
-     convertTagCoding() {
-       window.pyobject.convert_tag_coding(this.currentTrack);
      },
 
      updateTagInfo(track, name, artist, album) {

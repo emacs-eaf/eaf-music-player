@@ -32,6 +32,8 @@ class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
+        self.vue_current_track = ""
+
         self.music_infos = []
 
         self.first_file = os.path.expanduser(url)
@@ -92,6 +94,10 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
 
+    @QtCore.pyqtSlot(str)
+    def vue_update_current_track(self, current_track):
+        self.vue_current_track = current_track
+
     def pick_music_info(self, files):
         infos = []
 
@@ -125,28 +131,26 @@ class AppBuffer(BrowserBuffer):
             else:
                 return 0
 
-    @QtCore.pyqtSlot(str)
-    def show_tag_info(self, track):
+    def show_tag_info(self):
         for info in self.music_infos:
-            if info["path"] == track:
+            if info["path"] == self.vue_current_track:
                 message_to_emacs(f"Tag info: {info['name']} / {info['artist']} / {info['album']} ")
                 break
 
-    @QtCore.pyqtSlot(str)
-    def convert_tag_coding(self, track):
+    def convert_tag_coding(self):
         for info in self.music_infos:
-            if info["path"] == track:
+            if info["path"] == self.vue_current_track:
                 name = self.convert_to_utf8(info["name"])
                 artist = self.convert_to_utf8(info["artist"])
                 album = self.convert_to_utf8(info["album"])
 
-                audio = taglib.File(track)
+                audio = taglib.File(self.vue_current_track)
                 audio.tags['TITLE'] = name
                 audio.tags['ARTIST'] = artist
                 audio.tags['ALBUM'] = album
                 audio.save()
 
-                self.buffer_widget.eval_js_function("updateTagInfo", track, name, artist, album)
+                self.buffer_widget.eval_js_function("updateTagInfo", self.vue_current_track, name, artist, album)
 
                 message_to_emacs(f"Convert tag info to: {name} / {artist} / {album}")
                 break
