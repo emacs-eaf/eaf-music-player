@@ -108,6 +108,7 @@
     ("C-t" . "js_sort_by_artist")
     ("C-m" . "js_sort_by_album")
     ("F" . "open_link")
+    ("e" . "edit_tag_info")
     ("s" . "show_tag_info")
     ("T" . "convert_tag_coding")
     )
@@ -133,6 +134,38 @@
                    eaf-music-default-file)
    "music-player"
    ))
+
+(defun eaf-music-player-edit-tag-info (buffer-id name artist album)
+  "EAF Browser: edit FOCUS-TEXT with Emacs's BUFFER-ID."
+  (split-window-below -10)
+  (other-window 1)
+  (let ((edit-text-buffer (generate-new-buffer (format "eaf-%s-edit-tag-info" eaf--buffer-app-name))))
+    (with-current-buffer edit-text-buffer
+      (eaf-edit-mode)
+      (set (make-local-variable 'eaf--buffer-id) buffer-id)
+      (insert (format "%s\n%s\n%s\n" name artist album)))
+    (switch-to-buffer edit-text-buffer)
+    (setq-local eaf-edit-confirm-action "edit-tag-info")
+    (setq header-line-format
+          (substitute-command-keys
+           (concat
+            "\\<eaf-edit-mode-map>"
+            " EAF/" eaf--buffer-app-name " EDIT: "
+            "Confirm with `\\[eaf-edit-buffer-confirm]', "
+            "Cancel with `\\[eaf-edit-buffer-cancel]', "
+            "Separate diffrent nodes with 'RET'. "
+            )))
+    ;; When text line number above
+    (when (> (line-number-at-pos) 30)
+      (goto-char (point-min)))
+    ))
+
+(defun eaf-music-player-confirm-tag-info ()
+  (eaf-call-async "execute_function_with_args"
+                  eaf--buffer-id
+                  "update_tag_info"
+                  (buffer-substring-no-properties (point-min) (point-max))))
+(add-to-list 'eaf-edit-confirm-function-alist '("edit-tag-info" . eaf-music-player-confirm-tag-info))
 
 (add-to-list 'eaf-app-extensions-alist '("music-player" . eaf-music-extension-list))
 (add-to-list 'eaf-app-binding-alist '("music-player" . eaf-music-player-keybinding))

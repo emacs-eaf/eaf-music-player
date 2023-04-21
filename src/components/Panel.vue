@@ -125,6 +125,8 @@
 
      this.$root.$on("playItem", this.playItem);
 
+     this.$root.$on("updatePanelInfo", this.updatePanelInfo);
+
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
 
      this.$refs.player.addEventListener('timeupdate', () => {
@@ -154,6 +156,11 @@
            this.currentCover = url;
          }
        })
+     },
+
+     updatePanelInfo(name, artist) {
+       this.name = name;
+       this.artist = artist;
      },
 
      togglePlayOrder() {

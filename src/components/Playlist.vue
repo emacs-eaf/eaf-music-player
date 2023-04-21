@@ -157,6 +157,7 @@
 
      updateTagInfo(track, name, artist, album) {
        this.$store.commit("updateTrackTagInfo", { track, name, artist, album });
+       this.$root.$emit("updatePanelInfo", name, artist);
      }
    }
  }
