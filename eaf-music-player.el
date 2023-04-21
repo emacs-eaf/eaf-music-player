@@ -137,28 +137,7 @@
 
 (defun eaf-music-player-edit-tag-info (buffer-id name artist album)
   "EAF Browser: edit FOCUS-TEXT with Emacs's BUFFER-ID."
-  (split-window-below -10)
-  (other-window 1)
-  (let ((edit-text-buffer (generate-new-buffer (format "eaf-%s-edit-tag-info" eaf--buffer-app-name))))
-    (with-current-buffer edit-text-buffer
-      (eaf-edit-mode)
-      (set (make-local-variable 'eaf--buffer-id) buffer-id)
-      (insert (format "%s\n%s\n%s\n" name artist album)))
-    (switch-to-buffer edit-text-buffer)
-    (setq-local eaf-edit-confirm-action "edit-tag-info")
-    (setq header-line-format
-          (substitute-command-keys
-           (concat
-            "\\<eaf-edit-mode-map>"
-            " EAF/" eaf--buffer-app-name " EDIT: "
-            "Confirm with `\\[eaf-edit-buffer-confirm]', "
-            "Cancel with `\\[eaf-edit-buffer-cancel]', "
-            "Separate diffrent nodes with 'RET'. "
-            )))
-    ;; When text line number above
-    (when (> (line-number-at-pos) 30)
-      (goto-char (point-min)))
-    ))
+  (eaf-edit-buffer-popup buffer-id "eaf-%s-edit-tag-info" "edit-tag-info" (format "%s\n%s\n%s\n" name artist album)))
 
 (defun eaf-music-player-confirm-tag-info ()
   (eaf-call-async "execute_function_with_args"
