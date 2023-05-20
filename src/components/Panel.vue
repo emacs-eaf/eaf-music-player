@@ -90,7 +90,8 @@
        stepForwardIcon: "step-forward",
        playIcon: "play-circle",
        playOrderIcon: "list",
-       iconKey: 1
+       iconKey: 1,
+       port: ""
      }
    },
    computed: mapState([
@@ -107,12 +108,17 @@
            this.playItem(this.fileInfos[this.currentTrackIndex]);
          }
        }
+     },
+     
+     currentTime: function(newVal) {
+       this.$emit('getCurrentTime', newVal);
      }
    },
    props: {
    },
    mounted() {
      window.initPanel = this.initPanel;
+     window.initPort = this.initPort;
      window.forward = this.forward;
      window.backward = this.backward;
      window.toggle = this.toggle;
@@ -125,14 +131,17 @@
 
      this.$root.$on("playItem", this.playItem);
 
-     this.$root.$on("updatePanelInfo", this.updatePanelInfo);
-
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
 
      this.$refs.player.addEventListener('timeupdate', () => {
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
+     console.log(this.port);
+     setTimeout(() => {
+       this.ws = new WebSocket('ws://localhost:' + this.port);
+     }, 500)
+     
    },
    methods: {
      playItem(item) {
@@ -156,11 +165,62 @@
            this.currentCover = url;
          }
        })
+
+       albumArt(item.artist, {album: item.album, size: 'large'}, (error, url) => {
+         console.log(error, url);
+         if (error) {
+           this.$store.commit("updateCover", "");
+         } else {
+           this.$store.commit("updateCover", url);
+         }
+       })
+       
+       // Waiting server established.
+       if (this.currentTrackIndex === 0) {
+         setTimeout(() => {
+           this.getLyric();
+         }, 500)
+       } else {
+         this.getLyric();
+       }
      },
 
-     updatePanelInfo(name, artist) {
-       this.name = name;
-       this.artist = artist;
+     onSubmit(songInfo) {
+       this.ws.send(songInfo);
+     },
+     
+     onStop() {
+       this.ws.send('stop');
+     },
+
+     getLyric() {
+       let currentSong = this.fileInfos[this.currentTrackIndex];
+       this.onSubmit(JSON.stringify(currentSong));
+       this.ws.onmessage = (event) => {
+         let rawLyric = event.data;
+         let lines = rawLyric.split('\n');
+         let newLyric = [];
+         lines.forEach((line, index) => {
+           let newLine = {};
+           if (!line) {
+             return ;
+           }
+           let pattern = /\[\S*\]/g;
+           let time = line.match(pattern)[0];
+           let lineLyric = line.replace(time, '');
+           time = time.replace(/\[/, '');
+           time = time.replace(/\]/, '');
+           newLine.index = index;
+           newLine.time = time;
+           newLine.content = lineLyric.trim();
+           if (newLine.content == '') {
+             newLine.content = "~";
+           }
+           newLine.second = (time.split(":")[0] * 60 + parseFloat(time.split(":")[1])).toFixed(0);
+           newLyric.push(newLine);
+         })
+         this.$store.commit("updateLyric", newLyric);
+       }
      },
 
      togglePlayOrder() {
@@ -191,6 +251,10 @@
        this.pathSep = pathSep;
 
        this.iconKey = new Date();
+     },
+
+     initPort(port) {
+       this.port = port;
      },
      
      fileIconPath(iconFile) {
@@ -319,10 +383,6 @@
  .visual-bar {
    display: flex;
    justify-content: flex-end;
- }
-
- ::v-deep canvas {
-   height: 60;
  }
 
  .backward {

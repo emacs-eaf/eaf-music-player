@@ -11,6 +11,7 @@
       <div class="item-index">
         {{ padNumber(index + 1, numberWidth) }}
       </div>
+
       <div class="item-name">
         {{ item.name }}
       </div>
@@ -26,14 +27,12 @@
 
 <script>
  import { mapState } from "vuex";
- import { QWebChannel } from "qwebchannel";
 
  export default {
    name: 'Playlist',
    data() {
      return {
-       backgroundColor: "",
-       foregroundColor: "",
+
      }
    },
    computed: mapState([
@@ -44,18 +43,16 @@
      "fileInfos",
    ]),
    watch: {
-     currentTrack: {
-       // eslint-disable-next-line no-unused-vars
-       handler: function(val, oldVal) {
-         window.pyobject.vue_update_current_track(val);
-         this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
-       }
+     "currentTrack": function() {
+       this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
      }
    },
    props: {
+     backgroundColor: String,
+     foregroundColor: String,
+     pyobject: Object,
    },
    mounted() {
-     window.initPlaylist = this.initPlaylist;
      window.addFiles = this.addFiles;
      window.scrollUp = this.scrollUp;
      window.scrollDown = this.scrollDown;
@@ -67,20 +64,13 @@
      window.sortByTitle = this.sortByTitle;
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
+     window.showTagInfo = this.showTagInfo;
+     window.convertTagCoding = this.convertTagCoding;
      window.updateTagInfo = this.updateTagInfo;
    },
    created() {
-     // eslint-disable-next-line no-undef
-     new QWebChannel(qt.webChannelTransport, channel => {
-       window.pyobject = channel.objects.pyobject;
-     });
    },
    methods: {
-     initPlaylist(backgroundColor, foregroundColor) {
-       this.backgroundColor = backgroundColor;
-       this.foregroundColor = foregroundColor;
-     },
-
      addFiles(files) {
        this.$store.commit("updateFileInfos", files);
      },
@@ -112,6 +102,8 @@
        }
      },
 
+     
+
      scrollUp() {
        this.$refs.playlist.scrollTop += 30;
      },
@@ -142,22 +134,29 @@
 
      sortByTitle() {
        this.$store.commit("changeSort", "title");
-       window.pyobject.eval_emacs_function("message", ["Sort by title."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by title."]);
      },
 
      sortByArtist() {
        this.$store.commit("changeSort", "artist");
-       window.pyobject.eval_emacs_function("message", ["Sort by artist."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by artist."]);
      },
      
      sortByAlbum() {
        this.$store.commit("changeSort", "album");
-       window.pyobject.eval_emacs_function("message", ["Sort by album."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by album."]);
+     },
+
+     showTagInfo() {
+       window.pyobject.show_tag_info(this.currentTrack);
+     },
+
+     convertTagCoding() {
+       window.pyobject.convert_tag_coding(this.currentTrack);
      },
 
      updateTagInfo(track, name, artist, album) {
        this.$store.commit("updateTrackTagInfo", { track, name, artist, album });
-       this.$root.$emit("updatePanelInfo", name, artist);
      }
    }
  }

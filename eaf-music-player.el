@@ -107,10 +107,10 @@
     ("C-e" . "js_sort_by_title")
     ("C-t" . "js_sort_by_artist")
     ("C-m" . "js_sort_by_album")
+    ("C-l" . "js_change_panel")
     ("F" . "open_link")
-    ("e" . "edit_tag_info")
-    ("s" . "show_tag_info")
-    ("T" . "convert_tag_coding")
+    ("s" . "js_show_tag_info")
+    ("T" . "js_convert_tag_coding")
     )
   "The keybinding of EAF Music Player."
   :type 'cons)
@@ -134,17 +134,6 @@
                    eaf-music-default-file)
    "music-player"
    ))
-
-(defun eaf-music-player-edit-tag-info (buffer-id name artist album)
-  "EAF Browser: edit FOCUS-TEXT with Emacs's BUFFER-ID."
-  (eaf-edit-buffer-popup buffer-id "eaf-%s-edit-tag-info" "edit-tag-info" (format "%s\n%s\n%s\n" name artist album)))
-
-(defun eaf-music-player-confirm-tag-info ()
-  (eaf-call-async "execute_function_with_args"
-                  eaf--buffer-id
-                  "update_tag_info"
-                  (buffer-substring-no-properties (point-min) (point-max))))
-(add-to-list 'eaf-edit-confirm-function-alist '("edit-tag-info" . eaf-music-player-confirm-tag-info))
 
 (add-to-list 'eaf-app-extensions-alist '("music-player" . eaf-music-extension-list))
 (add-to-list 'eaf-app-binding-alist '("music-player" . eaf-music-player-keybinding))

@@ -8,7 +8,9 @@ const store = new Vuex.Store({
         currentTrack: "",
         currentTrackIndex: 0,
         numberWidth: 0,
-        fileInfos: []
+        fileInfos: [],
+        currentLyric: "",
+        currentCover: ""
     },
     getters: {
         currentTrack: state => {
@@ -57,6 +59,12 @@ const store = new Vuex.Store({
             state.fileInfos[index].name = payload.name;
             state.fileInfos[index].artist = payload.artist;
             state.fileInfos[index].album = payload.album;
+        },
+        updateLyric(state, lyric) {
+            state.currentLyric = lyric;
+        },
+        updateCover(state, url) {
+            state.currentCover = url;
         }
     },
   
