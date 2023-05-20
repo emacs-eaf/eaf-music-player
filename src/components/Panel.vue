@@ -131,9 +131,9 @@
      let that = this;
 
      this.$root.$on("playItem", this.playItem);
-     
+
      this.$root.$on("updatePanelInfo", this.updatePanelInfo);
-     
+
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
 
      this.$refs.player.addEventListener('timeupdate', () => {

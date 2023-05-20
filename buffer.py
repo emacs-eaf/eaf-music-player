@@ -34,7 +34,7 @@ class AppBuffer(BrowserBuffer):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
         self.vue_current_track = ""
-        
+
         self.music_infos = []
 
         self.first_file = os.path.expanduser(url)
@@ -107,7 +107,7 @@ class AppBuffer(BrowserBuffer):
     @QtCore.pyqtSlot(str)
     def vue_update_current_track(self, current_track):
         self.vue_current_track = current_track
-        
+
     def pick_music_info(self, files):
         infos = []
 
@@ -187,7 +187,7 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js_function("updateTagInfo", self.vue_current_track, name, artist, album)
 
         message_to_emacs(f"Update tag info: {name} / {artist} / {album}")
-        
+
     def convert_to_utf8(self, gbk_str):
         try:
             return gbk_str.encode('latin1').decode('gbk')
