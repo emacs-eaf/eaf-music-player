@@ -43,8 +43,12 @@
      "fileInfos",
    ]),
    watch: {
-     "currentTrack": function() {
-       this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
+     currentTrack: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         window.pyobject.vue_update_current_track(val);
+         this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
+       }
      }
    },
    props: {

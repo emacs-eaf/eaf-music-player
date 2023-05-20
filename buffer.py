@@ -23,7 +23,7 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
-from core.utils import get_emacs_var, get_free_port, interactive, get_emacs_theme_foreground, get_emacs_theme_background, message_to_emacs
+from core.utils import get_emacs_var, get_free_port, interactive, get_emacs_theme_foreground, get_emacs_theme_background, message_to_emacs, PostGui
 import os
 import mimetypes
 import taglib
@@ -33,6 +33,8 @@ class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
+        self.vue_current_track = ""
+        
         self.music_infos = []
 
         self.first_file = os.path.expanduser(url)
@@ -102,6 +104,10 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
 
+    @QtCore.pyqtSlot(str)
+    def vue_update_current_track(self, current_track):
+        self.vue_current_track = current_track
+        
     def pick_music_info(self, files):
         infos = []
 
@@ -135,32 +141,53 @@ class AppBuffer(BrowserBuffer):
             else:
                 return 0
 
-    @QtCore.pyqtSlot(str)
-    def show_tag_info(self, track):
+    def write_tag_info(self, path, name, artist, album):
+        audio = taglib.File(path)
+        audio.tags['TITLE'] = name
+        audio.tags['ARTIST'] = artist
+        audio.tags['ALBUM'] = album
+        audio.save()
+
+    def show_tag_info(self):
         for info in self.music_infos:
-            if info["path"] == track:
+            if info["path"] == self.vue_current_track:
                 message_to_emacs(f"Tag info: {info['name']} / {info['artist']} / {info['album']} ")
                 break
 
-    @QtCore.pyqtSlot(str)
-    def convert_tag_coding(self, track):
+    def convert_tag_coding(self):
         for info in self.music_infos:
-            if info["path"] == track:
+            if info["path"] == self.vue_current_track:
                 name = self.convert_to_utf8(info["name"])
                 artist = self.convert_to_utf8(info["artist"])
                 album = self.convert_to_utf8(info["album"])
 
-                audio = taglib.File(track)
-                audio.tags['TITLE'] = name
-                audio.tags['ARTIST'] = artist
-                audio.tags['ALBUM'] = album
-                audio.save()
+                self.write_tag_info(self.vue_current_track, name, artist, album)
 
-                self.buffer_widget.eval_js_function("updateTagInfo", track, name, artist, album)
+                self.buffer_widget.eval_js_function("updateTagInfo", self.vue_current_track, name, artist, album)
 
                 message_to_emacs(f"Convert tag info to: {name} / {artist} / {album}")
                 break
 
+    def edit_tag_info(self):
+        for info in self.music_infos:
+            if info["path"] == self.vue_current_track:
+                eval_in_emacs('eaf-music-player-edit-tag-info', [self.buffer_id, info["name"], info["artist"], info["album"]])
+                break
+
+    @PostGui()
+    def update_tag_info(self, tag_str):
+        tag_info = tag_str.split("\n")
+
+        name = tag_info[0] if len(tag_info) > 0 else ""
+        artist = tag_info[1] if len(tag_info) > 1 else ""
+        album = tag_info[2] if len(tag_info) > 2 else ""
+
+        self.write_tag_info(self.vue_current_track, name, artist, album)
+
+        self.buffer_widget.eval_js_function("updateTagInfo", self.vue_current_track, name, artist, album)
+
+        message_to_emacs(f"Update tag info: {name} / {artist} / {album}")
+        
     def convert_to_utf8(self, gbk_str):
         try:
             return gbk_str.encode('latin1').decode('gbk')

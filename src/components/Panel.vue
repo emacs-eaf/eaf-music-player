@@ -126,18 +126,21 @@
      window.playPrev = this.playPrev;
      window.playRandom = this.playRandom;
      window.togglePlayOrder = this.togglePlayOrder;
+     
 
      let that = this;
 
      this.$root.$on("playItem", this.playItem);
-
+     
+     this.$root.$on("updatePanelInfo", this.updatePanelInfo);
+     
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
 
      this.$refs.player.addEventListener('timeupdate', () => {
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
-     console.log(this.port);
+     
      setTimeout(() => {
        this.ws = new WebSocket('ws://localhost:' + this.port);
      }, 500)
@@ -221,6 +224,11 @@
          })
          this.$store.commit("updateLyric", newLyric);
        }
+     },
+     
+     updatePanelInfo(name, artist) {
+       this.name = name;
+       this.artist = artist;
      },
 
      togglePlayOrder() {
