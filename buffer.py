@@ -42,7 +42,6 @@ class AppBuffer(BrowserBuffer):
         self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
         self.port = get_free_port()
-        print(self.port);
         self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
         self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)])
         

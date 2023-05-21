@@ -68,8 +68,6 @@
      window.sortByTitle = this.sortByTitle;
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
-     window.showTagInfo = this.showTagInfo;
-     window.convertTagCoding = this.convertTagCoding;
      window.updateTagInfo = this.updateTagInfo;
    },
    created() {
@@ -105,8 +103,6 @@
          return this.foregroundColor;
        }
      },
-
-     
 
      scrollUp() {
        this.$refs.playlist.scrollTop += 30;
@@ -151,16 +147,9 @@
        this.pyobject.eval_emacs_function("message", ["Sort by album."]);
      },
 
-     showTagInfo() {
-       window.pyobject.show_tag_info(this.currentTrack);
-     },
-
-     convertTagCoding() {
-       window.pyobject.convert_tag_coding(this.currentTrack);
-     },
-
      updateTagInfo(track, name, artist, album) {
        this.$store.commit("updateTrackTagInfo", { track, name, artist, album });
+       this.$root.$emit("updatePanelInfo", name, artist);
      }
    }
  }
