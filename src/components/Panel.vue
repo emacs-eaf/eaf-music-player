@@ -182,7 +182,7 @@
        if (this.currentTrackIndex === 0) {
          setTimeout(() => {
            this.getLyric();
-         }, 500)
+         }, 1000)
        } else {
          this.getLyric();
        }
