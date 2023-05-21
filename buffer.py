@@ -23,10 +23,11 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
-from core.utils import get_emacs_var, interactive, eval_in_emacs, message_to_emacs, PostGui
+from core.utils import get_emacs_var, get_free_port, interactive, get_emacs_theme_foreground, get_emacs_theme_background, message_to_emacs, PostGui
 import os
 import mimetypes
 import taglib
+import subprocess
 
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
@@ -40,6 +41,10 @@ class AppBuffer(BrowserBuffer):
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
         self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
+        self.port = get_free_port()
+        self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
+        self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)])
+        
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
 
@@ -78,6 +83,10 @@ class AppBuffer(BrowserBuffer):
             self.icon_cache_dir,
             os.path.sep
         )
+
+        self.buffer_widget.eval_js_function(
+            '''initPort''',
+            self.port)
 
     def init_app(self):
         self.init_vars()

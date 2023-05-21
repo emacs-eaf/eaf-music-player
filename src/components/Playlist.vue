@@ -11,6 +11,7 @@
       <div class="item-index">
         {{ padNumber(index + 1, numberWidth) }}
       </div>
+
       <div class="item-name">
         {{ item.name }}
       </div>
@@ -26,14 +27,12 @@
 
 <script>
  import { mapState } from "vuex";
- import { QWebChannel } from "qwebchannel";
 
  export default {
    name: 'Playlist',
    data() {
      return {
-       backgroundColor: "",
-       foregroundColor: "",
+
      }
    },
    computed: mapState([
@@ -53,9 +52,11 @@
      }
    },
    props: {
+     backgroundColor: String,
+     foregroundColor: String,
+     pyobject: Object,
    },
    mounted() {
-     window.initPlaylist = this.initPlaylist;
      window.addFiles = this.addFiles;
      window.scrollUp = this.scrollUp;
      window.scrollDown = this.scrollDown;
@@ -70,17 +71,8 @@
      window.updateTagInfo = this.updateTagInfo;
    },
    created() {
-     // eslint-disable-next-line no-undef
-     new QWebChannel(qt.webChannelTransport, channel => {
-       window.pyobject = channel.objects.pyobject;
-     });
    },
    methods: {
-     initPlaylist(backgroundColor, foregroundColor) {
-       this.backgroundColor = backgroundColor;
-       this.foregroundColor = foregroundColor;
-     },
-
      addFiles(files) {
        this.$store.commit("updateFileInfos", files);
      },
@@ -142,17 +134,17 @@
 
      sortByTitle() {
        this.$store.commit("changeSort", "title");
-       window.pyobject.eval_emacs_function("message", ["Sort by title."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by title."]);
      },
 
      sortByArtist() {
        this.$store.commit("changeSort", "artist");
-       window.pyobject.eval_emacs_function("message", ["Sort by artist."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by artist."]);
      },
      
      sortByAlbum() {
        this.$store.commit("changeSort", "album");
-       window.pyobject.eval_emacs_function("message", ["Sort by album."]);
+       this.pyobject.eval_emacs_function("message", ["Sort by album."]);
      },
 
      updateTagInfo(track, name, artist, album) {
