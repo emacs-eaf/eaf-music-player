@@ -37,7 +37,7 @@
         class="play"
         :style="{ 'color': foregroundColor }"
         :src="fileIconPath(playIcon)"
-        @click="toggle"
+        @click="togglePlayStatus"
       />
       <img
         class="forward"
@@ -121,7 +121,7 @@
      window.initPort = this.initPort;
      window.forward = this.forward;
      window.backward = this.backward;
-     window.toggle = this.toggle;
+     window.togglePlayStatus = this.togglePlayStatus;
      window.playNext = this.playNext;
      window.playPrev = this.playPrev;
      window.playRandom = this.playRandom;
@@ -293,7 +293,7 @@
        this.$refs.player.currentTime -= 10;
      },
 
-     toggle() {
+     togglePlayStatus() {
        if (this.$refs.player.paused) {
          this.$refs.player.play();
          this.playIcon = "pause-circle";

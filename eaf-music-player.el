@@ -95,7 +95,7 @@
     ("h" . "js_play_random")
     ("," . "js_backward")
     ("." . "js_forward")
-    ("SPC" . "js_toggle")
+    ("SPC" . "js_toggle_play_status")
     ("C-n" . "js_scroll_up")
     ("C-p" . "js_scroll_down")
     ("C-v" . "js_scroll_up_page")
