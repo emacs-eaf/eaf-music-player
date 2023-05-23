@@ -121,10 +121,10 @@
      window.initPort = this.initPort;
      window.forward = this.forward;
      window.backward = this.backward;
-     window.togglePlayStatus = this.togglePlayStatus;
      window.playNext = this.playNext;
      window.playPrev = this.playPrev;
      window.playRandom = this.playRandom;
+     window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
      
 
@@ -140,10 +140,11 @@
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
-     
+
      setTimeout(() => {
        this.ws = new WebSocket('ws://localhost:' + this.port);
-     }, 500)
+     }, 1000)
+     
      
    },
    methods: {
@@ -182,7 +183,7 @@
        if (this.currentTrackIndex === 0) {
          setTimeout(() => {
            this.getLyric();
-         }, 1000)
+         }, 1500)
        } else {
          this.getLyric();
        }
