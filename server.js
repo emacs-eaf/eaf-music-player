@@ -38,13 +38,11 @@ wss.on('connection', (ws) => {
 
 handler = (input, callback) => {
   getLyric(input, (rawLyric) => {
-    console.log(rawLyric);
     callback(rawLyric);
   });
 };
 
 searchSong = function(keywords, limit, callback) {
-  console.log(keywords);
   search({
     keywords: keywords,
     type: 1,

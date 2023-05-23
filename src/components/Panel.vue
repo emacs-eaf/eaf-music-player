@@ -37,7 +37,7 @@
         class="play"
         :style="{ 'color': foregroundColor }"
         :src="fileIconPath(playIcon)"
-        @click="toggle"
+        @click="togglePlayStatus"
       />
       <img
         class="forward"
@@ -91,8 +91,7 @@
        playIcon: "play-circle",
        playOrderIcon: "list",
        iconKey: 1,
-       port: "",
-       isConnected: 0,
+       port: ""
      }
    },
    computed: mapState([
@@ -122,10 +121,10 @@
      window.initPort = this.initPort;
      window.forward = this.forward;
      window.backward = this.backward;
-     window.toggle = this.toggle;
      window.playNext = this.playNext;
      window.playPrev = this.playPrev;
      window.playRandom = this.playRandom;
+     window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
      
 
@@ -203,7 +202,6 @@
        this.onSubmit(JSON.stringify(currentSong));
        this.ws.onmessage = (event) => {
          let rawLyric = event.data;
-         console.log(rawLyric);
          let lines = rawLyric.split('\n');
          let newLyric = [];
          lines.forEach((line, index) => {
@@ -224,9 +222,7 @@
            }
            newLine.second = (time.split(":")[0] * 60 + parseFloat(time.split(":")[1])).toFixed(0);
            newLyric.push(newLine);
-           console.log(newLine);
          })
-         console.log(newLyric)
          this.$store.commit("updateLyric", newLyric);
        }
      },
@@ -298,14 +294,13 @@
        this.$refs.player.currentTime -= 10;
      },
 
-     toggle() {
+     togglePlayStatus() {
        if (this.$refs.player.paused) {
          this.$refs.player.play();
          this.playIcon = "pause-circle";
        } else {
          this.$refs.player.pause();
          this.playIcon = "play-circle";
-         this.$refs.player.currentTime = this.currentTime;
        }
      },
 
