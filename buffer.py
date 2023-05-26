@@ -54,7 +54,7 @@ class AppBuffer(BrowserBuffer):
 
         self.init_icons()
 
-        self.change_title("EAF Music Player")
+        self.change_title(get_emacs_var("eaf-music-player-buffer"))
 
         self.load_index_html(__file__)
 

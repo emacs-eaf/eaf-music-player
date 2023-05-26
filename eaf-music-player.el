@@ -116,6 +116,10 @@
   "The keybinding of EAF Music Player."
   :type 'cons)
 
+(defcustom eaf-music-player-buffer "EAF Music Player"
+  "The buffer name of music player."
+  :type 'string)
+
 (defcustom eaf-music-extension-list
   '("mp3")
   "The extension list of music application."
