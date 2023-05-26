@@ -54,16 +54,11 @@
       </div>
     </div>
     <div class="visual">
-      <audio ref="player">
+      <audio id="audio" ref="player">
         <source :src="currentTrack">
       </audio>
-      <av-bars
-        class="visual-bar"
-        ref-link="player"
-        caps-color="#FFF"
-        :bar-color="getBarColors()"
-        :caps-height="2"
-      />
+      <div id="audio-visual">
+      </div>
     </div>
   </div>
 </template>
@@ -71,6 +66,7 @@
 <script>
  import { mapState } from "vuex";
  import albumArt from "album-art"
+ import AudioMotionAnalyzer from 'audiomotion-analyzer';
 
  export default {
    name: 'Panel',
@@ -126,7 +122,21 @@
      window.playRandom = this.playRandom;
      window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
-     
+
+     const audioMotion = new AudioMotionAnalyzer(
+       document.getElementById('audio-visual'),
+       {
+         source: document.getElementById('audio')
+       }
+     );
+
+     audioMotion.setOptions({
+       showBgColor: true,
+       overlay: true,
+       bgAlpha: 0,
+       showScaleX: false,
+       height: 60
+     })
 
      let that = this;
 
@@ -389,11 +399,6 @@
    padding-right: 30px;
  }
 
- .visual-bar {
-   display: flex;
-   justify-content: flex-end;
- }
-
  .backward {
    cursor: pointer;
    height: 48px;
@@ -428,5 +433,8 @@
 
  .duration {
    margin-left: 5px;
+ }
+
+ #audio-visual {
  }
 </style>
