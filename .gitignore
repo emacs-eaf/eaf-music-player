@@ -6,3 +6,4 @@ node_modules/
 dist/
 tags
 src/svg_cache
+src/cover_cache

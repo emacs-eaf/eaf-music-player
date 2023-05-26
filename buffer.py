@@ -20,10 +20,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt6 import QtCore
+from PyQt6.QtCore import QThread
 from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
 from core.utils import *
+import shutil
 import os
 import mimetypes
 import taglib
@@ -36,20 +38,22 @@ class AppBuffer(BrowserBuffer):
         self.vue_current_track = ""
 
         self.music_infos = []
+        self.thread_queue = []
 
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
         self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
+        self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
         self.port = get_free_port()
         self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
         self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)])
-        
+
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
 
         self.init_icons()
-        
+
         self.change_title("EAF Music Player")
 
         self.load_index_html(__file__)
@@ -81,6 +85,7 @@ class AppBuffer(BrowserBuffer):
             self.panel_background_color,
             self.theme_foreground_color,
             self.icon_cache_dir,
+            self.cover_cache_dir,
             os.path.sep
         )
 
@@ -94,7 +99,7 @@ class AppBuffer(BrowserBuffer):
         files = []
 
         if os.path.isdir(self.first_file):
-            files = list(filter(lambda f : os.path.isfile(f), 
+            files = list(filter(lambda f : os.path.isfile(f),
                                 [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.first_file) for f in filenames]))
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
@@ -107,6 +112,28 @@ class AppBuffer(BrowserBuffer):
     def vue_update_current_track(self, current_track):
         self.vue_current_track = current_track
 
+        tags = taglib.File(current_track).tags
+
+        if shutil.which("album-art"):
+            fetch_cover_thread = FetchCover(self.cover_cache_dir, self.pick_tag_artist(tags), self.pick_tag_title(tags))
+            fetch_cover_thread.fetch_result.connect(self.update_cover)
+            self.thread_queue.append(fetch_cover_thread)
+            fetch_cover_thread.start()
+        else:
+            print("Please run `sudo npm i -g album-art' package to fetch cover.")
+
+    def update_cover(self, url):
+        self.buffer_widget.eval_js_function("updateCover", url)
+
+    def pick_tag_title(self, tags):
+        return tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
+
+    def pick_tag_artist(self, tags):
+        return tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else ""
+
+    def pick_tag_album(self, tags):
+        return tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
+
     def pick_music_info(self, files):
         infos = []
 
@@ -116,10 +143,10 @@ class AppBuffer(BrowserBuffer):
                 tags = taglib.File(file).tags
 
                 info = {
-                    "name": tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0],
+                    "name": self.pick_tag_title(tags),
                     "path": file,
-                    "artist": tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else "",
-                    "album": tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
+                    "artist": self.pick_tag_artist(tags),
+                    "album": self.pick_tag_album(tags)
                 }
                 infos.append(info)
 
@@ -192,3 +219,37 @@ class AppBuffer(BrowserBuffer):
             return gbk_str.encode('latin1').decode('gbk')
         except UnicodeDecodeError:
             return gbk_str
+
+class FetchCover(QThread):
+
+    fetch_result = QtCore.pyqtSignal(str)
+
+    def __init__(self, cover_cache_dir, artist, title):
+        QThread.__init__(self)
+
+        self.cover_cache_dir = cover_cache_dir
+        self.artist = artist
+        self.title = title
+
+    def run(self):
+        if not os.path.exists(self.cover_cache_dir):
+            os.makedirs(self.cover_cache_dir)
+
+        cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(self.artist, self.title))
+
+        if os.path.exists(cover_path):
+            self.fetch_result.emit(cover_path)
+        else:
+            import subprocess
+            result = subprocess.run(
+                "album-art '{}' '{}'".format(self.artist, self.title),
+                shell=True, capture_output=True, text=True).stdout
+
+            import urllib.request
+            try:
+                urllib.request.urlretrieve(result, cover_path)
+                self.fetch_result.emit(cover_path)
+            except:
+                import traceback
+                print(traceback.print_exc())
+                print("Fetch {} failed.".format(result))

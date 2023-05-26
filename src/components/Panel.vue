@@ -4,7 +4,7 @@
     :style="{ 'background': backgroundColor }">
     <div class="coverBox">
       <img
-        v-if="currentCover"
+        v-if="currentCover !== ''"
         class="cover"
         :src="currentCover"/>
     </div>
@@ -65,7 +65,6 @@
 
 <script>
  import { mapState } from "vuex";
- import albumArt from "album-art"
  import AudioMotionAnalyzer from 'audiomotion-analyzer';
 
  export default {
@@ -75,6 +74,7 @@
        currentTime: "",
        currentCover: "",
        iconCacheDir: "",
+       coverCacheDir: "",
        pathSep: "",
        duration: "",
        name: "",
@@ -122,6 +122,7 @@
      window.playRandom = this.playRandom;
      window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
+     window.updateCover = this.updateCover;
 
      const audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
@@ -170,25 +171,7 @@
        this.$refs.player.play();
 
        this.currentCover = "";
-       albumArt(item.artist, {album: item.album, size: 'small'}, (error, url) => {
-         console.log(error, url);
 
-         if (error) {
-           this.currentCover = "";
-         } else {
-           this.currentCover = url;
-         }
-       })
-
-       albumArt(item.artist, {album: item.album, size: 'large'}, (error, url) => {
-         console.log(error, url);
-         if (error) {
-           this.$store.commit("updateCover", "");
-         } else {
-           this.$store.commit("updateCover", url);
-         }
-       })
-       
        // Waiting server established.
        if (this.currentTrackIndex === 0) {
          setTimeout(() => {
@@ -197,6 +180,14 @@
        } else {
          this.getLyric();
        }
+     },
+
+     updateCover(url) {
+       console.log(url);
+       var dynamicallyId = new Date();
+       var src = url + "?cache=" + dynamicallyId;
+       this.currentCover = src;
+       this.$store.commit("updateCover", src);
      },
 
      onSubmit(songInfo) {
@@ -262,11 +253,12 @@
        }
      },
 
-     initPanel(playOrderIcon, backgroundColor, foregroundColor, iconCacheDir, pathSep) {
+     initPanel(playOrderIcon, backgroundColor, foregroundColor, iconCacheDir, coverCacheDir, pathSep) {
        this.playOrderIcon = playOrderIcon;
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.iconCacheDir = iconCacheDir;
+       this.coverCacheDir = coverCacheDir;
        this.pathSep = pathSep;
 
        this.iconKey = new Date();
