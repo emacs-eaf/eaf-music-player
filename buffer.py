@@ -115,15 +115,17 @@ class AppBuffer(BrowserBuffer):
         tags = taglib.File(current_track).tags
 
         if shutil.which("album-art"):
-            fetch_cover_thread = FetchCover(self.cover_cache_dir, self.pick_tag_artist(tags), self.pick_tag_title(tags))
+            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, self.pick_tag_artist(tags), self.pick_tag_title(tags))
             fetch_cover_thread.fetch_result.connect(self.update_cover)
             self.thread_queue.append(fetch_cover_thread)
             fetch_cover_thread.start()
         else:
             print("Please run `sudo npm i -g album-art' package to fetch cover.")
 
-    def update_cover(self, url):
-        self.buffer_widget.eval_js_function("updateCover", url)
+    def update_cover(self, track, url):
+        # Only update cover when
+        if track == self.vue_current_track:
+            self.buffer_widget.eval_js_function("updateCover", url)
 
     def pick_tag_title(self, tags):
         return tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
@@ -222,11 +224,12 @@ class AppBuffer(BrowserBuffer):
 
 class FetchCover(QThread):
 
-    fetch_result = QtCore.pyqtSignal(str)
+    fetch_result = QtCore.pyqtSignal(str, str)
 
-    def __init__(self, cover_cache_dir, artist, title):
+    def __init__(self, track, cover_cache_dir, artist, title):
         QThread.__init__(self)
 
+        self.track = track
         self.cover_cache_dir = cover_cache_dir
         self.artist = artist
         self.title = title
@@ -238,7 +241,7 @@ class FetchCover(QThread):
         cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(self.artist, self.title))
 
         if os.path.exists(cover_path):
-            self.fetch_result.emit(cover_path)
+            self.fetch_result.emit(self.track, cover_path)
         else:
             import subprocess
             result = subprocess.run(
@@ -248,7 +251,7 @@ class FetchCover(QThread):
             import urllib.request
             try:
                 urllib.request.urlretrieve(result, cover_path)
-                self.fetch_result.emit(cover_path)
+                self.fetch_result.emit(self.track, cover_path)
             except:
                 import traceback
                 print(traceback.print_exc())
