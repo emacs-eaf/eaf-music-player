@@ -25,5 +25,8 @@
       "pytaglib"
     ]
   },
+  "npm_global": [
+    "album-art"
+  ],
   "vue_install": true
 }
