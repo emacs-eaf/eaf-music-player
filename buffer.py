@@ -23,7 +23,7 @@ from PyQt6 import QtCore
 from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
-from core.utils import get_emacs_var, get_free_port, interactive, get_emacs_theme_foreground, get_emacs_theme_background, message_to_emacs, PostGui
+from core.utils import *
 import os
 import mimetypes
 import taglib
