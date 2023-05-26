@@ -149,6 +149,15 @@
         (eaf-call-async "eval_js_function" eaf--buffer-id "play_random" "")
         (cl-return)))))
 
+(defun eaf-music-player-play-toggle ()
+  "Toggle play song at everywhere."
+  (interactive)
+  (cl-dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when (string-equal eaf--buffer-app-name "music-player")
+        (eaf-call-async "eval_js_function" eaf--buffer-id "toggle_play_status" "")
+        (cl-return)))))
+
 (defun eaf-music-player-edit-tag-info (buffer-id name artist album)
   "EAF Browser: edit FOCUS-TEXT with Emacs's BUFFER-ID."
   (eaf-edit-buffer-popup buffer-id "eaf-%s-edit-tag-info" "edit-tag-info" (format "%s\n%s\n%s\n" name artist album)))
