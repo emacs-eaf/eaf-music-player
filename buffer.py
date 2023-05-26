@@ -115,7 +115,7 @@ class AppBuffer(BrowserBuffer):
         tags = taglib.File(current_track).tags
 
         if shutil.which("album-art"):
-            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, self.pick_tag_artist(tags), self.pick_tag_title(tags))
+            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, self.pick_tag_artist(tags), self.pick_tag_title(current_track, tags))
             fetch_cover_thread.fetch_result.connect(self.update_cover)
             self.thread_queue.append(fetch_cover_thread)
             fetch_cover_thread.start()
@@ -127,7 +127,7 @@ class AppBuffer(BrowserBuffer):
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateCover", url)
 
-    def pick_tag_title(self, tags):
+    def pick_tag_title(self, file, tags):
         return tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
 
     def pick_tag_artist(self, tags):
@@ -145,7 +145,7 @@ class AppBuffer(BrowserBuffer):
                 tags = taglib.File(file).tags
 
                 info = {
-                    "name": self.pick_tag_title(tags),
+                    "name": self.pick_tag_title(file, tags),
                     "path": file,
                     "artist": self.pick_tag_artist(tags),
                     "album": self.pick_tag_album(tags)
