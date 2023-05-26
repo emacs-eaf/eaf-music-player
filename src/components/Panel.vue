@@ -135,7 +135,7 @@
        overlay: true,
        bgAlpha: 0,
        showScaleX: false,
-       height: 60
+       height: 88
      })
 
      let that = this;
