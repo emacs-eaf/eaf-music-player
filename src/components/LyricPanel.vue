@@ -126,7 +126,7 @@
    overflow: hidden;
  }
  .cover {
-   filter: blur(12px);
+   filter: blur(45px);
    width: 100%;
    height: 100%;
    opacity: 0.8;
