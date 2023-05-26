@@ -434,7 +434,4 @@
  .duration {
    margin-left: 5px;
  }
-
- #audio-visual {
- }
 </style>
