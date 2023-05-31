@@ -231,8 +231,8 @@ class FetchCover(QThread):
 
         self.track = track
         self.cover_cache_dir = cover_cache_dir
-        self.artist = artist
-        self.title = title
+        self.artist = artist.replace('/', '_')
+        self.title = title.replace('/', '_')
 
     def run(self):
         if not os.path.exists(self.cover_cache_dir):
