@@ -140,23 +140,26 @@
    "music-player"
    ))
 
+(cl-defmacro with-eaf-music-player (&rest body)
+  "Eval code in EAF music player buffer."
+  (declare (indent 0))
+  `(cl-dolist (buffer (buffer-list))
+     (with-current-buffer buffer
+       (when (string-equal eaf--buffer-app-name "music-player")
+         ,@body
+         (cl-return)))))
+
 (defun eaf-music-player-play-next ()
   "Play next song at everywhere."
   (interactive)
-  (cl-dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (string-equal eaf--buffer-app-name "music-player")
-        (eaf-call-async "eval_js_function" eaf--buffer-id "play_random" "")
-        (cl-return)))))
+  (with-eaf-music-player
+    (eaf-call-async "eval_js_function" eaf--buffer-id "play_random" "")))
 
 (defun eaf-music-player-play-toggle ()
   "Toggle play song at everywhere."
   (interactive)
-  (cl-dolist (buffer (buffer-list))
-    (with-current-buffer buffer
-      (when (string-equal eaf--buffer-app-name "music-player")
-        (eaf-call-async "eval_js_function" eaf--buffer-id "toggle_play_status" "")
-        (cl-return)))))
+  (with-eaf-music-player
+    (eaf-call-async "eval_js_function" eaf--buffer-id "toggle_play_status" "")))
 
 (defun eaf-music-player-edit-tag-info (buffer-id name artist album)
   "EAF Browser: edit FOCUS-TEXT with Emacs's BUFFER-ID."
