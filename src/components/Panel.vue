@@ -425,5 +425,6 @@
 
  .duration {
    margin-left: 5px;
+   margin-right: 250px;
  }
 </style>
