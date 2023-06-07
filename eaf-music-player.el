@@ -161,6 +161,12 @@
   (with-eaf-music-player
     (eaf-call-async "eval_js_function" eaf--buffer-id "toggle_play_status" "")))
 
+(defun eaf-music-player-pop ()
+  (interactive)
+  (if (get-buffer eaf-music-player-buffer)
+      (switch-to-buffer eaf-music-player-buffer)
+    (message "EAF music player not start.")))
+
 (defun eaf-music-player-edit-tag-info (buffer-id name artist album)
   "EAF Browser: edit FOCUS-TEXT with Emacs's BUFFER-ID."
   (eaf-edit-buffer-popup buffer-id "eaf-%s-edit-tag-info" "edit-tag-info" (format "%s\n%s\n%s\n" name artist album)))
