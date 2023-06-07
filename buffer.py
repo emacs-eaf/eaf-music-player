@@ -45,9 +45,14 @@ class AppBuffer(BrowserBuffer):
         self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
         self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
+
         self.port = get_free_port()
         self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
-        self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)])
+        self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
+        try:
+            stdout, stderr = self.node_process.communicate(timeout=2)
+        except Exception:
+            print("The connection to server.js timed out. port:", self.port)
 
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
@@ -90,7 +95,7 @@ class AppBuffer(BrowserBuffer):
         )
 
         self.buffer_widget.eval_js_function(
-            '''initPort''',
+            '''connectServer''',
             self.port)
 
     def init_app(self):
