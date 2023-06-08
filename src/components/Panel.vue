@@ -135,9 +135,10 @@
        showBgColor: true,
        overlay: true,
        bgAlpha: 0,
-       showScaleX: false,
-       height: 88
+       showScaleX: false
      })
+
+     audioMotion.setCanvasSize(460, 88)
 
      let that = this;
 
@@ -388,7 +389,7 @@
 
  .visual {
    width: 30%;
-   padding-right: 30px;
+   padding-right: 20px;
  }
 
  .backward {
@@ -425,6 +426,5 @@
 
  .duration {
    margin-left: 5px;
-   margin-right: 250px;
  }
 </style>
