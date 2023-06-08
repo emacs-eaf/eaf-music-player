@@ -254,13 +254,14 @@
        }
      },
 
-     initPanel(playOrderIcon, backgroundColor, foregroundColor, iconCacheDir, coverCacheDir, pathSep) {
+     initPanel(playOrderIcon, backgroundColor, foregroundColor, iconCacheDir, coverCacheDir, pathSep, defaultCoverPath) {
        this.playOrderIcon = playOrderIcon;
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.iconCacheDir = iconCacheDir;
        this.coverCacheDir = coverCacheDir;
        this.pathSep = pathSep;
+       this.currentCover = defaultCoverPath;
 
        this.iconKey = new Date();
      },

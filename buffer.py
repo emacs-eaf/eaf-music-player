@@ -45,6 +45,8 @@ class AppBuffer(BrowserBuffer):
         self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
         self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
+        self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
+        self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
         self.port = get_free_port()
         self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
         self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)])
@@ -65,6 +67,7 @@ class AppBuffer(BrowserBuffer):
                 svg_content = f.read().replace("<path", '''<path fill="{}"'''.format(self.theme_foreground_color))
                 with open(os.path.join(self.icon_cache_dir, svg), "w") as svg_file:
                     svg_file.write(svg_content)
+
     @interactive
     def update_theme(self):
         super().update_theme()
@@ -86,7 +89,8 @@ class AppBuffer(BrowserBuffer):
             self.theme_foreground_color,
             self.icon_cache_dir,
             self.cover_cache_dir,
-            os.path.sep
+            os.path.sep,
+            self.get_default_cover_path()
         )
 
         self.buffer_widget.eval_js_function(
@@ -108,14 +112,25 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
 
+    def get_default_cover_path(self):
+        return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
+
     @QtCore.pyqtSlot(str)
     def vue_update_current_track(self, current_track):
         self.vue_current_track = current_track
 
         tags = taglib.File(current_track).tags
 
+        artist = self.pick_tag_artist(tags)
+        title = self.pick_tag_title(current_track, tags)
+        cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(artist, title))
+
+        # Fill default cover if no match cover found.
+        if not os.path.exists(cover_path):
+            self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
+
         if shutil.which("album-art"):
-            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, self.pick_tag_artist(tags), self.pick_tag_title(current_track, tags))
+            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title)
             fetch_cover_thread.fetch_result.connect(self.update_cover)
             self.thread_queue.append(fetch_cover_thread)
             fetch_cover_thread.start()
