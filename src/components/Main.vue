@@ -2,6 +2,7 @@
   <div id="page">
     <div class="content">
       <Playlist
+        ref="playlist"
         v-if="currentPanel === 'Playlist'"
         class="playlist"
         :backgroundColor="backgroundColor"
@@ -63,13 +64,19 @@
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
      },
+
      changePanel() {
        if (this.currentPanel === "Playlist") {
          this.currentPanel = "LyricPanel";
        } else {
          this.currentPanel = "Playlist";
+
+         this.$nextTick(function() {
+           this.$refs.playlist.scrollToCurrentTrack();
+         })
        }
      },
+
      getCurrentTime(time) {
        this.currentTime = time;
      }

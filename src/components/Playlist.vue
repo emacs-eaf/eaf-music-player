@@ -47,7 +47,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          window.pyobject.vue_update_current_track(val);
-         this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
+         this.scrollToCurrentTrack();
        }
      }
    },
@@ -150,6 +150,10 @@
      updateTagInfo(track, name, artist, album) {
        this.$store.commit("updateTrackTagInfo", { track, name, artist, album });
        this.$root.$emit("updatePanelInfo", name, artist);
+     },
+
+     scrollToCurrentTrack() {
+       this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
      }
    }
  }
