@@ -30,6 +30,7 @@ import os
 import mimetypes
 import taglib
 import subprocess
+import threading
 
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
@@ -47,9 +48,11 @@ class AppBuffer(BrowserBuffer):
         self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
+
         self.port = get_free_port()
-        self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
-        self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)])
+        server_thread = threading.Thread(target=self.init_server)
+        self.thread_queue.append(server_thread)
+        server_thread.start()
 
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
@@ -94,7 +97,7 @@ class AppBuffer(BrowserBuffer):
         )
 
         self.buffer_widget.eval_js_function(
-            '''initPort''',
+            '''connectServer''',
             self.port)
 
     def init_app(self):
@@ -111,6 +114,13 @@ class AppBuffer(BrowserBuffer):
         self.music_infos = self.pick_music_info(files)
 
         self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
+
+    def init_server(self):
+        self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
+        try:
+            stdout, stderr = self.node_process.communicate(timeout=2)
+        except Exception:
+            print("The connection to server.js timed out. port:", self.port)
 
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path

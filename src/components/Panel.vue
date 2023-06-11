@@ -86,8 +86,7 @@
        stepForwardIcon: "step-forward",
        playIcon: "play-circle",
        playOrderIcon: "list",
-       iconKey: 1,
-       port: ""
+       iconKey: 1
      }
    },
    computed: mapState([
@@ -114,7 +113,6 @@
    },
    mounted() {
      window.initPanel = this.initPanel;
-     window.initPort = this.initPort;
      window.forward = this.forward;
      window.backward = this.backward;
      window.playNext = this.playNext;
@@ -123,6 +121,7 @@
      window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
      window.updateCover = this.updateCover;
+     window.connectServer = this.connectServer;
 
      const audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
@@ -152,12 +151,6 @@
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
-
-     setTimeout(() => {
-       this.ws = new WebSocket('ws://localhost:' + this.port);
-     }, 1000)
-     
-     
    },
    methods: {
      playItem(item) {
@@ -266,8 +259,8 @@
        this.iconKey = new Date();
      },
 
-     initPort(port) {
-       this.port = port;
+     connectServer(port) {
+       this.ws = new WebSocket('ws://localhost:' + port);
      },
      
      fileIconPath(iconFile) {
