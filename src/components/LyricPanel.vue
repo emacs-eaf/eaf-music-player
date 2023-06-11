@@ -100,6 +100,13 @@
        this.lyric6 = "";
        this.lyric7 = "";
        this.lyric8 = "";
+     },
+     currentTrack: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         window.pyobject.vue_update_current_track(val);
+         this.scrollToCurrentTrack();
+       }
      }
    },
    mounted() {
