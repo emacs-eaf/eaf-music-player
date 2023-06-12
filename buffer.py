@@ -50,6 +50,7 @@ class AppBuffer(BrowserBuffer):
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
 
         self.port = get_free_port()
+        self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
         server_thread = threading.Thread(target=self.init_server)
         self.thread_queue.append(server_thread)
         server_thread.start()
