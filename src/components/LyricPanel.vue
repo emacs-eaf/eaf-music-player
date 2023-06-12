@@ -105,7 +105,7 @@
        // eslint-disable-next-line no-unused-vars
        handler: function(val, oldVal) {
          window.pyobject.vue_update_current_track(val);
-         this.scrollToCurrentTrack();
+         this.$root.$emit("currentTrackVisibleInPlayList");
        }
      }
    },

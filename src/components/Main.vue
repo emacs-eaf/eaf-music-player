@@ -58,6 +58,11 @@
    mounted() {
      window.initPlaylist = this.initPlaylist;
      window.changePanel = this.changePanel;
+
+     this.$root.$on("currentTrackVisibleInPlayList", this.currentTrackVisibleInPlayList);
+   },
+   beforeDestroy() {
+     this.$root.off("currentTrackVisibleInPlayList");
    },
    methods: {
      initPlaylist(backgroundColor, foregroundColor) {
@@ -71,14 +76,18 @@
        } else {
          this.currentPanel = "Playlist";
 
-         this.$nextTick(function() {
-           this.$refs.playlist.scrollToCurrentTrack();
-         })
+         this.$root.$emit("currentTrackVisibleInPlayList");
        }
      },
 
      getCurrentTime(time) {
        this.currentTime = time;
+     },
+
+     currentTrackVisibleInPlayList() {
+       this.$nextTick(function() {
+         this.$refs.playlist.scrollToCurrentTrack();
+         })
      }
    }
  }
