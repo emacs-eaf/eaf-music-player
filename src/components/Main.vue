@@ -86,7 +86,9 @@
 
      currentTrackVisibleInPlayList() {
        this.$nextTick(function() {
-         this.$refs.playlist.scrollToCurrentTrack();
+         if (this.$refs.playlist) {
+           this.$refs.playlist.scrollToCurrentTrack();
+         }
          })
      }
    }
