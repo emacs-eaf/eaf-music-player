@@ -404,22 +404,26 @@ def get_cover_path(cover_cache_dir, artist, title):
 def is_light_image(img_path):
     try:
         img = Image.open(img_path)
-        pixels = list(img.getdata())
+        width, height = img.size
 
-        total_pixels = len(pixels)
+        left = int(width * 0.25)
+        right = int(width * 0.75)
+        top = int(height * 0.25)
+        bottom = int(height * 0.75)
+
+        pixels = []
+        for i in range(top, bottom):
+            for j in range(left, right):
+                pixel = img.getpixel((j, i))
+                pixels.append(pixel)
+
         light_pixels = 0
-
         for pixel in pixels:
-            r, g, b = pixel  # Extract R, G, B values
+            r, g, b = pixel
             if r > 220 or g > 220 or b > 220:
                 light_pixels += 1
 
-        light_pixel_ratio = light_pixels / total_pixels
-
-        # Uncomment below code to debug pixel radio.
-        # Current best value is 0.45
-        # print("******* ", img_path, light_pixel_ratio)
-
+        light_pixel_ratio = light_pixels / len(pixels)
         return light_pixel_ratio > 0.45
     except:
         return False
