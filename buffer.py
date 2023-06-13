@@ -54,7 +54,9 @@ class AppBuffer(BrowserBuffer):
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
         self.lyric_js = os.path.join(os.path.dirname(__file__), "lyric.js")
-
+        
+        if not os.path.exists(self.lyrics_cache_dir):
+            os.makedirs(self.lyrics_cache_dir)
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
 
