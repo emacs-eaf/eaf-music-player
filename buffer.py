@@ -415,6 +415,11 @@ def is_light_image(img_path):
                 light_pixels += 1
 
         light_pixel_ratio = light_pixels / total_pixels
-        return light_pixel_ratio > 0.6
+
+        # Uncomment below code to debug pixel radio.
+        # Current best value is 0.45
+        # print("******* ", img_path, light_pixel_ratio)
+
+        return light_pixel_ratio > 0.45
     except:
         return False
