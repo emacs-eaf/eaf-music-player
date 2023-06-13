@@ -25,6 +25,7 @@ from PyQt6.QtGui import QColor
 from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
 from core.utils import *
+from PIL import Image
 import shutil
 import os
 import mimetypes
@@ -401,23 +402,19 @@ def get_cover_path(cover_cache_dir, artist, title):
     return os.path.join(cover_cache_dir, "{}_{}.png".format(artist.replace("/", "_"), title.replace("/", "_")))
 
 def is_light_image(img_path):
-    from PIL import Image
     try:
         img = Image.open(img_path)
         pixels = list(img.getdata())
+
+        total_pixels = len(pixels)
+        light_pixels = 0
+
+        for pixel in pixels:
+            r, g, b = pixel  # Extract R, G, B values
+            if r > 220 or g > 220 or b > 220:
+                light_pixels += 1
+
+        light_pixel_ratio = light_pixels / total_pixels
+        return light_pixel_ratio > 0.6
     except:
-        return False
-
-    total_pixels = len(pixels)
-    light_pixels = 0
-
-    for pixel in pixels:
-        r, g, b = pixel  # Extract R, G, B values
-        if r > 220 or g > 220 or b > 220:
-            light_pixels += 1
-
-    light_pixel_ratio = light_pixels / total_pixels
-    if light_pixel_ratio > 0.6:
-        return True
-    else:
         return False
