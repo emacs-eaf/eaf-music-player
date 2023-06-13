@@ -54,7 +54,7 @@ class AppBuffer(BrowserBuffer):
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
         self.lyric_js = os.path.join(os.path.dirname(__file__), "lyric.js")
-        
+
         if not os.path.exists(self.lyrics_cache_dir):
             os.makedirs(self.lyrics_cache_dir)
         if not os.path.exists(self.icon_cache_dir):
@@ -169,6 +169,9 @@ class AppBuffer(BrowserBuffer):
         # Only update cover when
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateCover", url)
+
+            self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
+
 
     def pick_tag_title(self, file, tags):
         return tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
@@ -396,3 +399,25 @@ def get_lyric_path(lyrics_cache_dir, artist, title):
 
 def get_cover_path(cover_cache_dir, artist, title):
     return os.path.join(cover_cache_dir, "{}_{}.png".format(artist.replace("/", "_"), title.replace("/", "_")))
+
+def is_light_image(img_path):
+    from PIL import Image
+    try:
+        img = Image.open(img_path)
+        pixels = list(img.getdata())
+    except:
+        return False
+
+    total_pixels = len(pixels)
+    light_pixels = 0
+
+    for pixel in pixels:
+        r, g, b = pixel  # Extract R, G, B values
+        if r > 220 or g > 220 or b > 220:
+            light_pixels += 1
+
+    light_pixel_ratio = light_pixels / total_pixels
+    if light_pixel_ratio > 0.6:
+        return True
+    else:
+        return False

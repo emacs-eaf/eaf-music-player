@@ -122,6 +122,7 @@
      window.togglePlayOrder = this.togglePlayOrder;
      window.updateCover = this.updateCover;
      window.updateLyric = this.updateLyric;
+     window.updateLyricColor = this.updateLyricColor;
 
      const audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
@@ -173,6 +174,10 @@
        var src = url + "?cache=" + dynamicallyId;
        this.currentCover = src;
        this.$store.commit("updateCover", src);
+     },
+
+     updateLyricColor(color) {
+       this.$store.commit("updateLyricColor", color);
      },
 
      updateLyric(lyric) {

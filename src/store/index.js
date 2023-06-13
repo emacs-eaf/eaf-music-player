@@ -10,7 +10,8 @@ const store = new Vuex.Store({
         numberWidth: 0,
         fileInfos: [],
         currentLyric: "",
-        currentCover: ""
+        currentCover: "",
+        lyricColor: "#CCCCCC"
     },
     getters: {
         currentTrack: state => {
@@ -65,9 +66,12 @@ const store = new Vuex.Store({
         },
         updateCover(state, url) {
             state.currentCover = url;
+        },
+        updateLyricColor(state, color) {
+            state.lyricColor = color;
         }
     },
-  
+
 })
 function charCompare(charA, charB) {
     if (charA === undefined || charA === null || charA === '' || charA === ' ' || charA === '　') {

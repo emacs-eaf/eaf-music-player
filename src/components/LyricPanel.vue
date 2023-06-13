@@ -3,15 +3,15 @@
     <img class="cover" :src="currentCover">
     <div class="lyrics-container"
          :style="{ 'color': foregroundColor }">
-      <p class="lyric-0 row"> {{lyric0}} </p>
-      <p class="lyric-1 row"> {{lyric1}} </p>
-      <p class="lyric-2 row"> {{lyric2}} </p>
-      <p class="lyric-3 row"> {{lyric3}} </p>
-      <p class="lyric-4 row"> {{lyric4}} </p>
-      <p class="lyric-3 row"> {{lyric5}} </p>
-      <p class="lyric-2 row"> {{lyric6}} </p>
-      <p class="lyric-1 row"> {{lyric7}} </p>
-      <p class="lyric-0 row"> {{lyric8}} </p>
+      <p class="lyric-0 row" :style="{ 'color': lyricColor }"> {{lyric0}} </p>
+      <p class="lyric-1 row" :style="{ 'color': lyricColor }"> {{lyric1}} </p>
+      <p class="lyric-2 row" :style="{ 'color': lyricColor }"> {{lyric2}} </p>
+      <p class="lyric-3 row" :style="{ 'color': lyricColor }"> {{lyric3}} </p>
+      <p class="lyric-4 row" :style="{ 'color': lyricColor }"> {{lyric4}} </p>
+      <p class="lyric-3 row" :style="{ 'color': lyricColor }"> {{lyric5}} </p>
+      <p class="lyric-2 row" :style="{ 'color': lyricColor }"> {{lyric6}} </p>
+      <p class="lyric-1 row" :style="{ 'color': lyricColor }"> {{lyric7}} </p>
+      <p class="lyric-0 row" :style="{ 'color': lyricColor }"> {{lyric8}} </p>
     </div>
   </div>
 </template>
@@ -43,7 +43,8 @@
        "numberWidth",
        "fileInfos",
        "currentLyric",
-       "currentCover"
+       "currentCover",
+       "lyricColor",
      ])
    },
    props: {
@@ -147,7 +148,6 @@
    text-align: center;
    width: 1000px;
    white-space: normal;
-   color: #CCCCCC;
  }
  .lyric-0 {
    font-size: 30px;
