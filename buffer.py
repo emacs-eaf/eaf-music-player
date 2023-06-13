@@ -48,12 +48,7 @@ class AppBuffer(BrowserBuffer):
         self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
-
-        self.port = get_free_port()
-        self.server_js = os.path.join(os.path.dirname(__file__), "server.js")
-        server_thread = threading.Thread(target=self.init_server)
-        self.thread_queue.append(server_thread)
-        server_thread.start()
+        self.lyric_js = os.path.join(os.path.dirname(__file__), "lyric.js")
 
         if not os.path.exists(self.icon_cache_dir):
             os.makedirs(self.icon_cache_dir)
@@ -97,10 +92,6 @@ class AppBuffer(BrowserBuffer):
             self.get_default_cover_path()
         )
 
-        self.buffer_widget.eval_js_function(
-            '''connectServer''',
-            self.port)
-
     def init_app(self):
         self.init_vars()
 
@@ -116,13 +107,6 @@ class AppBuffer(BrowserBuffer):
 
         self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
 
-    def init_server(self):
-        self.node_process = subprocess.Popen(['node', self.server_js, str(self.port)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
-        try:
-            stdout, stderr = self.node_process.communicate(timeout=2)
-        except Exception:
-            print("The connection to server.js timed out. port:", self.port)
-
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
 
@@ -136,6 +120,7 @@ class AppBuffer(BrowserBuffer):
         title = self.pick_tag_title(current_track, tags)
         cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(artist, title))
 
+        self.fetch_lyric(current_track)
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
@@ -148,6 +133,24 @@ class AppBuffer(BrowserBuffer):
         else:
             print("Please run `sudo npm i -g album-art' package to fetch cover.")
 
+    
+    def fetch_lyric(self, current_track):
+        tags = taglib.File(current_track).tags
+        title = self.pick_tag_title(current_track, tags)
+        artist = self.pick_tag_artist(tags)
+        album = self.pick_tag_album(tags)
+        
+        fetch_lyric_thread = FetchLyric(current_track, self.lyric_js, title, artist, album)
+        fetch_lyric_thread.fetch_result.connect(self.update_lyric)
+        self.thread_queue.append(fetch_lyric_thread)
+        fetch_lyric_thread.start()
+        
+    def update_lyric(self, track, lyric):
+        import base64
+        # Only update cover when
+        if track == self.vue_current_track:
+            self.buffer_widget.eval_js_function("updateLyric", string_to_base64(lyric))
+        
     def update_cover(self, track, url):
         # Only update cover when
         if track == self.vue_current_track:
@@ -282,3 +285,24 @@ class FetchCover(QThread):
                 import traceback
                 print(traceback.print_exc())
                 print("Fetch {} failed.".format(result))
+
+class FetchLyric(QThread):
+    fetch_result = QtCore.pyqtSignal(str, str)
+
+    def __init__(self, track, lyric_js, title, artist, album):
+        QThread.__init__(self)
+
+        self.track = track
+        self.lyric_js = lyric_js
+        self.title = title
+        self.artist = artist
+        self.album = album
+
+    def run(self):
+        node_process = subprocess.Popen(['node', self.lyric_js, self.title, self.artist, self.album], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
+        output, _ = node_process.communicate()
+        
+        result = output.decode('utf-8')
+        
+        self.fetch_result.emit(self.track, result)
+        
