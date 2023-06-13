@@ -113,17 +113,16 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str)
     def vue_update_current_track(self, current_track):
-        tags = taglib.File(current_track).tags
+        self.fetch_cover(current_track)
+        self.fetch_lyric(current_track)
 
+        self.vue_current_track = current_track
+
+    def fetch_cover(self, current_track):
+        tags = taglib.File(current_track).tags
         artist = self.pick_tag_artist(tags)
         title = self.pick_tag_title(current_track, tags)
         cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(artist, title))
-
-        if current_track != self.vue_current_track:
-            self.buffer_widget.eval_js_function("updateLyric", "")
-
-        self.vue_current_track = current_track
-        self.fetch_lyric(current_track)
 
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
@@ -137,8 +136,10 @@ class AppBuffer(BrowserBuffer):
         else:
             print("Please run `sudo npm i -g album-art' package to fetch cover.")
 
-    
     def fetch_lyric(self, current_track):
+        if current_track != self.vue_current_track:
+            self.buffer_widget.eval_js_function("updateLyric", "")
+
         tags = taglib.File(current_track).tags
         title = self.pick_tag_title(current_track, tags)
         artist = self.pick_tag_artist(tags)
