@@ -3,15 +3,15 @@
     <img class="cover" :src="currentCover">
     <div class="lyrics-container"
          :style="{ 'color': foregroundColor }">
-      <p class="lyric-0 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric0}} </p>
-      <p class="lyric-1 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric1}} </p>
-      <p class="lyric-2 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric2}} </p>
-      <p class="lyric-3 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric3}} </p>
-      <p class="lyric-4 row" > {{lyric4}} </p>
-      <p class="lyric-3 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric5}} </p>
-      <p class="lyric-2 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric6}} </p>
-      <p class="lyric-1 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric7}} </p>
-      <p class="lyric-0 row" :style="{...lyricStyleIn, ...lyricStyleOut}"> {{lyric8}} </p>
+      <p class="lyric-0 row"> {{lyric0}} </p>
+      <p class="lyric-1 row"> {{lyric1}} </p>
+      <p class="lyric-2 row"> {{lyric2}} </p>
+      <p class="lyric-3 row"> {{lyric3}} </p>
+      <p class="lyric-4 row"> {{lyric4}} </p>
+      <p class="lyric-3 row"> {{lyric5}} </p>
+      <p class="lyric-2 row"> {{lyric6}} </p>
+      <p class="lyric-1 row"> {{lyric7}} </p>
+      <p class="lyric-0 row"> {{lyric8}} </p>
     </div>
   </div>
 </template>
@@ -44,19 +44,7 @@
        "fileInfos",
        "currentLyric",
        "currentCover"
-     ]), 
-     lyricStyleOut() {
-       return {
-         opacity: this.showLyric ? 1 : 0,
-         transition: 'opacity 1.1s ease-in-out',
-       };
-     },
-     lyricStyleIn() {
-       return {
-         opacity: this.showLyric ? 0 : 1,
-         transition: 'opacity 0.4s ease-in-out',
-       };
-     },
+     ])
    },
    props: {
      currentTime: String,
