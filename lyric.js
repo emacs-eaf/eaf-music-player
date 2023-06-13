@@ -1,46 +1,17 @@
-const WebSocket = require('ws');
 const {lyric, search} = require('NeteaseCloudMusicApi');
-
-let handler = null;
-let stopFlag = false;
-const port = process.argv[2];
-const wss = new WebSocket.Server({ port: port });
+const songName = process.argv[2];
+const artist = process.argv[3];
+const album = process.argv[4];
+const song = {name: songName, artist: artist, album: album}
 
 normalizeString = function(str) {
-    return str.replace(/[\(\)\[\]\/!?@#￥%…&*・]/g, ' ')
+  return str.replace(/[\(\)\[\]\/!?@#￥%…&*・]/g, ' ')
             .replace(/\s+/g, ' ');
 };
 
 isSubstring = function(string1, string2) {
   return string1.includes(string2) || string2.includes(string1);
 }
-
-wss.on('connection', (ws) => {
-  console.log('music server connected');
-  
-  ws.on('message', (message) => {
-    message = JSON.parse(message);
-    console.log('get message', message);
-
-    if (message === 'stop') {
-      stopFlag = true;
-    } else {
-      handler(message, (output) => {
-        ws.send(output);
-      });
-    }
-  });
-  
-  ws.on('close', () => {
-    console.log('music api close');
-  });
-});
-
-handler = (input, callback) => {
-  getLyric(input, (rawLyric) => {
-    callback(rawLyric);
-  });
-};
 
 searchSong = function(keywords, limit, callback) {
   search({
@@ -164,3 +135,16 @@ getLyric = function (song, callback) {
     }
   });
 };
+
+getLyric(song, (res) => {
+  console.log(res)
+})
+
+/*{
+  name: 'Oh! レディ・ステディ・ポジティブ',
+  path: '/home/scheng/temp_music/Liyuu - Oh! レディ・ステディ・ポジティブ.mp3',
+  artist: 'Liyuu',
+  album: 'Oh! レディ・ステディ・ポジティブ'
+}
+node lyric.js  Oh! レディ・ステディ・ポジティブ Liyuu Oh! レディ・ステディ・ポジティブ
+*/

@@ -121,7 +121,7 @@
      window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
      window.updateCover = this.updateCover;
-     window.connectServer = this.connectServer;
+     window.updateLyric = this.updateLyric;
 
      const audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
@@ -165,15 +165,6 @@
        this.$refs.player.play();
 
        this.currentCover = "";
-
-       // Waiting server established.
-       if (this.currentTrackIndex === 0) {
-         setTimeout(() => {
-           this.getLyric();
-         }, 1500)
-       } else {
-         this.getLyric();
-       }
      },
 
      updateCover(url) {
@@ -184,42 +175,30 @@
        this.$store.commit("updateCover", src);
      },
 
-     onSubmit(songInfo) {
-       this.ws.send(songInfo);
-     },
-     
-     onStop() {
-       this.ws.send('stop');
-     },
-
-     getLyric() {
-       let currentSong = this.fileInfos[this.currentTrackIndex];
-       this.onSubmit(JSON.stringify(currentSong));
-       this.ws.onmessage = (event) => {
-         let rawLyric = event.data;
-         let lines = rawLyric.split('\n');
-         let newLyric = [];
-         lines.forEach((line, index) => {
-           let newLine = {};
-           if (!line) {
-             return ;
-           }
-           let pattern = /\[\S*\]/g;
-           let time = line.match(pattern)[0];
-           let lineLyric = line.replace(time, '');
-           time = time.replace(/\[/, '');
-           time = time.replace(/\]/, '');
-           newLine.index = index;
-           newLine.time = time;
-           newLine.content = lineLyric.trim();
-           if (newLine.content == '') {
-             newLine.content = "~";
-           }
-           newLine.second = (time.split(":")[0] * 60 + parseFloat(time.split(":")[1])).toFixed(0);
-           newLyric.push(newLine);
-         })
-         this.$store.commit("updateLyric", newLyric);
-       }
+     updateLyric(lyric) {
+       lyric = decodeURIComponent(escape(window.atob(lyric)))
+       let lines = lyric.split('\n');
+       let newLyric = [];
+       lines.forEach((line, index) => {
+         let newLine = {};
+         if (!line) {
+           return ;
+         }
+         let pattern = /\[\S*\]/g;
+         let time = line.match(pattern)[0];
+         let lineLyric = line.replace(time, '');
+         time = time.replace(/\[/, '');
+         time = time.replace(/\]/, '');
+         newLine.index = index;
+         newLine.time = time;
+         newLine.content = lineLyric.trim();
+         if (newLine.content == '') {
+           newLine.content = "~";
+         }
+         newLine.second = (time.split(":")[0] * 60 + parseFloat(time.split(":")[1])).toFixed(0);
+         newLyric.push(newLine);
+       })
+       this.$store.commit("updateLyric", newLyric);
      },
      
      updatePanelInfo(name, artist) {
@@ -257,10 +236,6 @@
        this.currentCover = defaultCoverPath;
 
        this.iconKey = new Date();
-     },
-
-     connectServer(port) {
-       this.ws = new WebSocket('ws://localhost:' + port);
      },
      
      fileIconPath(iconFile) {
