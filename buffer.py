@@ -126,7 +126,7 @@ class AppBuffer(BrowserBuffer):
         tags = taglib.File(current_track).tags
         artist = self.pick_tag_artist(tags)
         title = self.pick_tag_title(current_track, tags)
-        cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(artist, title))
+        cover_path = get_cover_path(self.cover_cache_dir, artist, title)
 
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
@@ -272,14 +272,14 @@ class FetchCover(QThread):
 
         self.track = track
         self.cover_cache_dir = cover_cache_dir
-        self.artist = artist.replace('/', '_')
-        self.title = title.replace('/', '_')
+        self.artist = artist
+        self.title = title
 
     def run(self):
         if not os.path.exists(self.cover_cache_dir):
             os.makedirs(self.cover_cache_dir)
 
-        cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(self.artist, self.title))
+        cover_path = get_cover_path(self.cover_cache_dir, self.artist, self.title)
 
         if os.path.exists(cover_path):
             self.fetch_result.emit(self.track, cover_path)
@@ -391,3 +391,6 @@ class QQMusicLyric:
 
 def get_lyric_path(lyrics_cache_dir, artist, title):
     return os.path.join(lyrics_cache_dir, "{}_{}.lyc".format(artist.replace("/", "_"), title.replace("/", "_")))
+
+def get_cover_path(cover_cache_dir, artist, title):
+    return os.path.join(cover_cache_dir, "{}_{}.png".format(artist.replace("/", "_"), title.replace("/", "_")))
