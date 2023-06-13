@@ -113,10 +113,10 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str)
     def vue_update_current_track(self, current_track):
+        self.vue_current_track = current_track
+
         self.fetch_cover(current_track)
         self.fetch_lyric(current_track)
-
-        self.vue_current_track = current_track
 
     def fetch_cover(self, current_track):
         tags = taglib.File(current_track).tags
@@ -137,14 +137,13 @@ class AppBuffer(BrowserBuffer):
             print("Please run `sudo npm i -g album-art' package to fetch cover.")
 
     def fetch_lyric(self, current_track):
-        if current_track != self.vue_current_track:
-            self.buffer_widget.eval_js_function("updateLyric", "")
+        self.buffer_widget.eval_js_function("updateLyric", "")
 
         tags = taglib.File(current_track).tags
         title = self.pick_tag_title(current_track, tags)
         artist = self.pick_tag_artist(tags)
         album = self.pick_tag_album(tags)
-        lyric_path = os.path.join(self.lyrics_cache_dir, "{}_{}.lyc".format(artist, title))
+        lyric_path = get_lyric_path(self.lyrics_cache_dir, artist, title)
 
         if os.path.exists(lyric_path):
             with open(lyric_path, "r") as f:
@@ -154,12 +153,14 @@ class AppBuffer(BrowserBuffer):
             fetch_lyric_thread.fetch_result.connect(self.update_lyric)
             self.thread_queue.append(fetch_lyric_thread)
             fetch_lyric_thread.start()
-        
+
     def update_lyric(self, track, lyric):
         # Only update cover when
+        print("****** ", track, lyric)
+
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateLyric", string_to_base64(lyric))
-        
+
     def update_cover(self, track, url):
         # Only update cover when
         if track == self.vue_current_track:
@@ -291,9 +292,7 @@ class FetchCover(QThread):
                 urllib.request.urlretrieve(result, cover_path)
                 self.fetch_result.emit(self.track, cover_path)
             except:
-                import traceback
-                print(traceback.print_exc())
-                print("Fetch {} failed.".format(result))
+                print("Fetch cover for {} failed.".format(self.track))
 
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
@@ -312,12 +311,14 @@ class FetchLyric(QThread):
         node_process = subprocess.Popen(['node', self.lyric_js, self.title, self.artist, self.album],
                                         stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
         output, _ = node_process.communicate()
-        
+
         result = output.decode('utf-8')
 
-        lyric_path = os.path.join(self.lyrics_cache_dir, "{}_{}.lyc".format(self.artist, self.title))
+        lyric_path = get_lyric_path(self.lyrics_cache_dir, self.artist, self.title)
         with open(lyric_path, "w") as f:
             f.write(result)
-        
+
         self.fetch_result.emit(self.track, result)
-        
+
+def get_lyric_path(lyrics_cache_dir, artist, title):
+    return os.path.join(lyrics_cache_dir, "{}_{}.lyc".format(artist.replace("/", "_"), title.replace("/", "_")))
