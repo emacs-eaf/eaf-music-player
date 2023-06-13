@@ -159,6 +159,7 @@
    text-align: center;
    width: 1000px;
    white-space: normal;
+   color: #CCCCCC;
  }
  .lyric-0 {
    font-size: 30px;

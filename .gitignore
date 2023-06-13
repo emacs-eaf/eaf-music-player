@@ -7,3 +7,4 @@ dist/
 tags
 src/svg_cache
 src/cover_cache
+src/lyrics_cache

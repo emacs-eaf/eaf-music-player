@@ -46,6 +46,7 @@ class AppBuffer(BrowserBuffer):
         self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
         self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
         self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
+        self.lyrics_cache_dir = os.path.join(os.path.dirname(__file__), "src", "lyrics_cache")
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
         self.lyric_js = os.path.join(os.path.dirname(__file__), "lyric.js")
@@ -112,15 +113,18 @@ class AppBuffer(BrowserBuffer):
 
     @QtCore.pyqtSlot(str)
     def vue_update_current_track(self, current_track):
-        self.vue_current_track = current_track
-
         tags = taglib.File(current_track).tags
 
         artist = self.pick_tag_artist(tags)
         title = self.pick_tag_title(current_track, tags)
         cover_path = os.path.join(self.cover_cache_dir, "{}_{}.png".format(artist, title))
 
+        if current_track != self.vue_current_track:
+            self.buffer_widget.eval_js_function("updateLyric", "")
+
+        self.vue_current_track = current_track
         self.fetch_lyric(current_track)
+
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
@@ -139,14 +143,18 @@ class AppBuffer(BrowserBuffer):
         title = self.pick_tag_title(current_track, tags)
         artist = self.pick_tag_artist(tags)
         album = self.pick_tag_album(tags)
-        
-        fetch_lyric_thread = FetchLyric(current_track, self.lyric_js, title, artist, album)
-        fetch_lyric_thread.fetch_result.connect(self.update_lyric)
-        self.thread_queue.append(fetch_lyric_thread)
-        fetch_lyric_thread.start()
+        lyric_path = os.path.join(self.lyrics_cache_dir, "{}_{}.lyc".format(artist, title))
+
+        if os.path.exists(lyric_path):
+            with open(lyric_path, "r") as f:
+                self.update_lyric(current_track, f.read())
+        else:
+            fetch_lyric_thread = FetchLyric(current_track, self.lyric_js, self.lyrics_cache_dir, title, artist, album)
+            fetch_lyric_thread.fetch_result.connect(self.update_lyric)
+            self.thread_queue.append(fetch_lyric_thread)
+            fetch_lyric_thread.start()
         
     def update_lyric(self, track, lyric):
-        import base64
         # Only update cover when
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateLyric", string_to_base64(lyric))
@@ -289,20 +297,26 @@ class FetchCover(QThread):
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
 
-    def __init__(self, track, lyric_js, title, artist, album):
+    def __init__(self, track, lyric_js, cache_dir, title, artist, album):
         QThread.__init__(self)
 
         self.track = track
         self.lyric_js = lyric_js
+        self.lyrics_cache_dir = cache_dir
         self.title = title
         self.artist = artist
         self.album = album
 
     def run(self):
-        node_process = subprocess.Popen(['node', self.lyric_js, self.title, self.artist, self.album], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
+        node_process = subprocess.Popen(['node', self.lyric_js, self.title, self.artist, self.album],
+                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
         output, _ = node_process.communicate()
         
         result = output.decode('utf-8')
+
+        lyric_path = os.path.join(self.lyrics_cache_dir, "{}_{}.lyc".format(self.artist, self.title))
+        with open(lyric_path, "w") as f:
+            f.write(result)
         
         self.fetch_result.emit(self.track, result)
         
