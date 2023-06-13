@@ -11,7 +11,7 @@ normalizeString = function(str) {
 
 isSubstring = function(string1, string2) {
   return string1.includes(string2) || string2.includes(string1);
-}
+};
 
 searchSong = function(keywords, limit, callback) {
   search({
@@ -137,14 +137,6 @@ getLyric = function (song, callback) {
 };
 
 getLyric(song, (res) => {
-  console.log(res)
-})
+  console.log(res);
+});
 
-/*{
-  name: 'Oh! レディ・ステディ・ポジティブ',
-  path: '/home/scheng/temp_music/Liyuu - Oh! レディ・ステディ・ポジティブ.mp3',
-  artist: 'Liyuu',
-  album: 'Oh! レディ・ステディ・ポジティブ'
-}
-node lyric.js  Oh! レディ・ステディ・ポジティブ Liyuu Oh! レディ・ステディ・ポジティブ
-*/
