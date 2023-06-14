@@ -59,7 +59,6 @@ class AppBuffer(BrowserBuffer):
         self.lyrics_cache_dir = os.path.join(os.path.dirname(__file__), "src", "lyrics_cache")
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
-        self.lyric_js = os.path.join(os.path.dirname(__file__), "lyric.js")
 
         if not os.path.exists(self.lyrics_cache_dir):
             os.makedirs(self.lyrics_cache_dir)
@@ -161,7 +160,7 @@ class AppBuffer(BrowserBuffer):
             with open(lyric_path, "r") as f:
                 self.update_lyric(current_track, f.read())
         else:
-            fetch_lyric_thread = FetchLyric(current_track, self.lyric_js, self.lyrics_cache_dir, title, artist, album)
+            fetch_lyric_thread = FetchLyric(current_track, self.lyrics_cache_dir, title, artist, album)
             fetch_lyric_thread.fetch_result.connect(self.update_lyric)
             self.thread_queue.append(fetch_lyric_thread)
             fetch_lyric_thread.start()
@@ -315,11 +314,10 @@ class FetchCover(QThread):
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
 
-    def __init__(self, track, lyric_js, cache_dir, title, artist, album):
+    def __init__(self, track, cache_dir, title, artist, album):
         QThread.__init__(self)
 
         self.track = track
-        self.lyric_js = lyric_js
         self.lyrics_cache_dir = cache_dir
         self.title = title
         self.artist = artist
