@@ -10,7 +10,6 @@
   "dependencies": {
     "audiomotion-analyzer": "^4.0.0",
     "core-js": "^3.16.1",
-    "NeteaseCloudMusicApi": "^4.8.10",
     "qwebchannel": "^5.9.0",
     "vue": "^2.6.14",
     "vuex": "^3.6.2"
