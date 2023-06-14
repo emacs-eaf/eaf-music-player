@@ -160,7 +160,7 @@ class AppBuffer(BrowserBuffer):
         if not title:
             title = os.path.splitext(os.path.basename(file_path))[0]
         return {
-            'file': file_path,
+            'path': file_path,
             'title': title,
             'artist': self._get_tag_value(tags, artist_key),
             'album': self._get_tag_value(tags, album_key)
@@ -223,13 +223,9 @@ class AppBuffer(BrowserBuffer):
             file_type = mimetypes.guess_type(file)[0]
             if file_type and file_type.startswith("audio/"):
                 tags = self.get_audio_taginfos(file)
-                info = {
-                    "name": tags['title'],
-                    "path": file,
-                    "artist": tags['artist'],
-                    "album": tags['album']
-                }
-                infos.append(info)
+                tags['name'] = tags['title']
+                del tags['title']
+                infos.append(tags)
 
         infos.sort(key=cmp_to_key(self.music_compare))
 
