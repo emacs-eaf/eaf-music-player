@@ -65,19 +65,14 @@
        }
        this.activeLyricRowIndex = currentRow.index;
        
-       this.showLyric = !this.showLyric;
-       setTimeout(() => {
-         this.lyric0 = this.lyric1;
-         this.lyric1 = this.lyric2;
-         this.lyric2 = this.lyric3;
-         this.lyric3 = this.lyric4;
-         this.lyric4 = this.currentLyric[this.activeLyricRowIndex].content;
-         this.lyric5 = this.currentLyric[(this.activeLyricRowIndex + 1) % this.currentLyric.length].content;
-         this.lyric6 = this.currentLyric[(this.activeLyricRowIndex + 2) % this.currentLyric.length].content;
-         this.lyric7 = this.currentLyric[(this.activeLyricRowIndex + 3) % this.currentLyric.length].content;
-         this.lyric8 = this.currentLyric[(this.activeLyricRowIndex + 4) % this.currentLyric.length].content;
-         this.showLyric = !this.showLyric;
-       }, 800);
+       for (let i = -4, j = 0; i <= 4; i ++, j ++ ) {
+         let pos = this.activeLyricRowIndex + i;
+         if (pos < 0) {
+           this["lyric" + j] = "";
+         } else {
+           this["lyric" + j] = this.currentLyric[pos % this.currentLyric.length].content;
+         }
+       }
      },
      currentLyric: function() { 
       for(let i = 0; i <= 8; i++) {
