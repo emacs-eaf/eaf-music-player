@@ -19,10 +19,22 @@
   ],
   "pip": {
     "linux": [
-      "pytaglib"
+      "pytaglib",
+      "certifi",
+      "pycryptodome",
+      "rsa"
     ],
     "win32": [
-      "pytaglib"
+      "pytaglib",
+      "certifi",
+      "pycryptodome",
+      "rsa"
+    ],
+    "darwin": [
+      "pytaglib",
+      "certifi",
+      "pycryptodome",
+      "rsa"
     ]
   },
   "npm_global": [
