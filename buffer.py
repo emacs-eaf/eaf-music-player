@@ -31,6 +31,11 @@ import os
 import sys
 import mimetypes
 import taglib
+try:
+    from mutagen.easyid3 import EasyID3
+except ImportError:
+    EasyID3 = None
+
 import subprocess
 import time
 import base64
@@ -129,10 +134,43 @@ class AppBuffer(BrowserBuffer):
         self.fetch_cover(current_track)
         self.fetch_lyric(current_track)
 
+
+    def _get_tag_value(self, tags, key: str) -> str:
+        values = tags.get(key, None)
+        if not values:
+            return ''
+        return values[0]
+
+
+    def get_audio_taginfos(self, file_path: str) -> dict:
+        tags = taglib.File(file_path).tags
+        title_key = 'TITLE'
+        artist_key = 'ARTIST'
+        album_key = 'ALBUM'
+        if not self._get_tag_value(tags, title_key):
+            if EasyID3 is not None:
+                try:
+                    tags = EasyID3(file_path)
+                    title_key = title_key.lower()
+                    artist_key = artist_key.lower()
+                    album_key = album_key.lower()
+                except Exception as e:
+                    pass
+        title = self._get_tag_value(tags, title_key)
+        if not title:
+            title = os.path.splitext(os.path.basename(file_path))[0]
+        return {
+            'path': file_path,
+            'title': title,
+            'artist': self._get_tag_value(tags, artist_key),
+            'album': self._get_tag_value(tags, album_key)
+        }
+
+
     def fetch_cover(self, current_track):
-        tags = taglib.File(current_track).tags
-        artist = self.pick_tag_artist(tags)
-        title = self.pick_tag_title(current_track, tags)
+        tags = self.get_audio_taginfos(current_track)
+        artist = tags['artist']
+        title = tags['title']
         cover_path = get_cover_path(self.cover_cache_dir, artist, title)
 
         # Fill default cover if no match cover found.
@@ -147,13 +185,14 @@ class AppBuffer(BrowserBuffer):
         else:
             print("Please run `sudo npm i -g album-art' package to fetch cover.")
 
+
     def fetch_lyric(self, current_track):
         self.buffer_widget.eval_js_function("updateLyric", "")
 
-        tags = taglib.File(current_track).tags
-        title = self.pick_tag_title(current_track, tags)
-        artist = self.pick_tag_artist(tags)
-        album = self.pick_tag_album(tags)
+        tags = self.get_audio_taginfos(current_track)
+        title = tags['title']
+        artist = tags['artist']
+        album = tags['album']
         lyric_path = get_lyric_path(self.lyrics_cache_dir, artist, title)
 
         if os.path.exists(lyric_path):
@@ -166,7 +205,7 @@ class AppBuffer(BrowserBuffer):
             fetch_lyric_thread.start()
 
     def update_lyric(self, track, lyric):
-        # Only update cover when
+        # Only update lyric when
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateLyric", string_to_base64(lyric))
 
@@ -177,34 +216,16 @@ class AppBuffer(BrowserBuffer):
 
             self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
 
-
-    def pick_tag_title(self, file, tags):
-        s = tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
-        return self.convert_to_utf8(s)
-
-    def pick_tag_artist(self, tags):
-        s = tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else ""
-        return self.convert_to_utf8(s)
-
-    def pick_tag_album(self, tags):
-        s = tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
-        return self.convert_to_utf8(s)
-
     def pick_music_info(self, files):
         infos = []
 
         for file in files:
             file_type = mimetypes.guess_type(file)[0]
             if file_type and file_type.startswith("audio/"):
-                tags = taglib.File(file).tags
-
-                info = {
-                    "name": self.pick_tag_title(file, tags),
-                    "path": file,
-                    "artist": self.pick_tag_artist(tags),
-                    "album": self.pick_tag_album(tags)
-                }
-                infos.append(info)
+                tags = self.get_audio_taginfos(file)
+                tags['name'] = tags['title']
+                del tags['title']
+                infos.append(tags)
 
         infos.sort(key=cmp_to_key(self.music_compare))
 
