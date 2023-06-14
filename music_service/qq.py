@@ -1,3 +1,4 @@
+import re
 import time
 import base64
 import requests
@@ -60,5 +61,5 @@ class QQMusicApi(BaseProvider):
         lyric = result.get("lyric", None)
         if not lyric:
             return None
-        return base64.b64decode(lyric).decode("utf-8")
-
+        lyrics = base64.b64decode(lyric).decode("utf-8")
+        return re.sub(r'\[(ti|ar|al|by|offset):.*?\]\n', '', lyrics)
