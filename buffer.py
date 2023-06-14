@@ -31,17 +31,12 @@ import os
 import sys
 import mimetypes
 import taglib
+import colorsys
+
 try:
     from mutagen.easyid3 import EasyID3
 except ImportError:
     EasyID3 = None
-
-import subprocess
-import time
-import base64
-import requests
-from urllib.parse import quote_plus
-from typing import Optional
 
 sys.path.append(os.path.dirname(__file__))
 from music_service import music_service
