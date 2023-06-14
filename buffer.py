@@ -321,13 +321,7 @@ class FetchLyric(QThread):
         self.album = album
 
     def run(self):
-        start_time = time.time()
         result = music_service.lyric(self.title, self.artist, self.album)
-        print(type(result))
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        print(f"[MusicService] fetch lyric title: {self.title} elapsed: {elapsed_time} seconds, " \
-              f"result: {bool(result)}")
         if not result:
             return
 
