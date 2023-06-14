@@ -86,7 +86,8 @@
        stepForwardIcon: "step-forward",
        playIcon: "play-circle",
        playOrderIcon: "list",
-       iconKey: 1
+       iconKey: 1,
+       audioMotion: Object,
      }
    },
    computed: mapState([
@@ -123,23 +124,14 @@
      window.updateCover = this.updateCover;
      window.updateLyric = this.updateLyric;
      window.updateLyricColor = this.updateLyricColor;
+     window.setAudioMotion = this.setAudioMotion;
 
-     const audioMotion = new AudioMotionAnalyzer(
+     this.audioMotion =  new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
        {
          source: document.getElementById('audio')
        }
-     );
-
-     audioMotion.setOptions({
-       showBgColor: true,
-       overlay: true,
-       bgAlpha: 0,
-       showScaleX: false
-     })
-
-     audioMotion.setCanvasSize(460, 88)
-
+     )     
      let that = this;
 
      this.$root.$on("playItem", this.playItem);
@@ -205,10 +197,30 @@
        })
        this.$store.commit("updateLyric", newLyric);
      },
-     
+
      updatePanelInfo(name, artist) {
        this.name = name;
        this.artist = artist;
+     },
+
+     setAudioMotion(colorList) {
+       const options = {
+         bgColor: '#011a35', // background color (optional) - defaults to '#111'
+         dir: 'h',           // add this property to create a horizontal gradient (optional)
+         colorStops: colorList
+       }
+       this.audioMotion.registerGradient( 'myGradient', options );
+
+       this.audioMotion.setOptions({
+         showBgColor: true,
+         overlay: true,
+         bgAlpha: 0,
+         showScaleX: false,
+         gradient: 'myGradient',
+         mode: 2
+       })
+
+       this.audioMotion.setCanvasSize(460, 88)
      },
 
      togglePlayOrder() {
