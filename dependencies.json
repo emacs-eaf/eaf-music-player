@@ -19,18 +19,21 @@
   ],
   "pip": {
     "linux": [
+      "mutagen",
       "pytaglib",
       "certifi",
       "pycryptodome",
       "rsa"
     ],
     "win32": [
+      "mutagen",
       "pytaglib",
       "certifi",
       "pycryptodome",
       "rsa"
     ],
     "darwin": [
+      "mutagen",
       "pytaglib",
       "certifi",
       "pycryptodome",
