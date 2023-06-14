@@ -28,6 +28,7 @@ from core.utils import *
 from PIL import Image
 import shutil
 import os
+import sys
 import mimetypes
 import taglib
 import subprocess
@@ -36,6 +37,10 @@ import base64
 import requests
 from urllib.parse import quote_plus
 from typing import Optional
+
+sys.path.append(os.path.dirname(__file__))
+from music_service import music_service
+
 
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
@@ -175,13 +180,16 @@ class AppBuffer(BrowserBuffer):
 
 
     def pick_tag_title(self, file, tags):
-        return tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
+        s = tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
+        return self.convert_to_utf8(s)
 
     def pick_tag_artist(self, tags):
-        return tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else ""
+        s = tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else ""
+        return self.convert_to_utf8(s)
 
     def pick_tag_album(self, tags):
-        return tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
+        s = tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
+        return self.convert_to_utf8(s)
 
     def pick_music_info(self, files):
         infos = []
@@ -266,6 +274,8 @@ class AppBuffer(BrowserBuffer):
     def convert_to_utf8(self, gbk_str):
         try:
             return gbk_str.encode('latin1').decode('gbk')
+        except UnicodeEncodeError:
+            return gbk_str
         except UnicodeDecodeError:
             return gbk_str
 
@@ -315,24 +325,10 @@ class FetchLyric(QThread):
         self.artist = artist
         self.album = album
 
-    def get_lyric_from_netease(self):
-        node_process = subprocess.Popen(['node', self.lyric_js, self.title, self.artist, self.album],
-                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=False)
-        output, _ = node_process.communicate()
-
-        return output.decode('utf-8')
-
-    def get_lyric_from_qq_music(self):
-        try:
-            api = QQMusicLyric()
-            return api.query_lyric(self.title, self.artist).decode("utf-8")
-        except:
-            return None
-
     def run(self):
-        result = self.get_lyric_from_qq_music()
-        if result is None:
-            result = self.get_lyric_from_netease()
+        result = music_service.lyric(self.title, self.artist, self.album)
+        if not result:
+            return
 
         lyric_path = get_lyric_path(self.lyrics_cache_dir, self.artist, self.title)
         with open(lyric_path, "w") as f:
@@ -340,60 +336,6 @@ class FetchLyric(QThread):
 
         self.fetch_result.emit(self.track, result)
 
-class QQMusicLyric:
-
-    def query_lyric(self, name: str, artist: Optional[str] = "") -> Optional[str]:
-        mid = self._search_song(name, artist)
-        if not mid:
-            return None
-        return self._download_lyric(mid)
-
-    def _search_song(self, name: str, artist: Optional[str] = "") -> Optional[str]:
-        key = quote_plus(f"{name} {artist}".strip())
-        url = "https://c.y.qq.com/splcloud/fcgi-bin/smartbox_new.fcg?format=json" \
-              "&inCharset=utf-8&outCharset=utf-8&key=" + key
-        try:
-            result = requests.get(url, headers={"Referer": "https://c.y.qq.com/"}).json()
-        except Exception as e:
-            print(f"query name: {name}, artist: {artist} lyric fail: {e}")
-            result = {}
-        item_list = result.get("data", {}).get("song", {}).get("itemlist", None)
-        if not item_list:
-            return None
-        return item_list[0].get("mid", None)
-
-    def _download_lyric(self, mid: str) -> Optional[str]:
-        if not mid:
-            return None
-        current_millis = int((time.time()) * 1000)
-        data = {
-            'pcachetime': str(current_millis),
-            'songmid': mid,
-            'g_tk': '5381',
-            'loginUin': '0',
-            'hostUin': '0',
-            'format': 'json',
-            'inCharset': 'utf8',
-            'outCharset': 'utf8',
-            'notice': '0',
-            'platform': 'yqq',
-            'needNewCode': '0',
-        }
-
-        url = 'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg'
-        headers = {
-                'Referer': 'https://c.y.qq.com/'
-        }
-        try:
-            result = requests.post(url, data=data, headers=headers).json()
-        except Exception as e:
-            print(f"[qqmusic lyric] download mid: {mid} fail: {e}")
-            result = {}
-
-        lyric = result.get("lyric", None)
-        if not lyric:
-            return None
-        return base64.b64decode(lyric).decode("utf-8")
 
 def get_lyric_path(lyrics_cache_dir, artist, title):
     return os.path.join(lyrics_cache_dir, "{}_{}.lyc".format(artist.replace("/", "_"), title.replace("/", "_")))

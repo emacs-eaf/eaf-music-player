@@ -79,16 +79,15 @@
          this.showLyric = !this.showLyric;
        }, 800);
      },
-     currentLyric: function() {
-       this.lyric0 = "";
-       this.lyric1 = "";
-       this.lyric2 = "";
-       this.lyric3 = "";
-       this.lyric4 = "";
-       this.lyric5 = "";
-       this.lyric6 = "";
-       this.lyric7 = "";
-       this.lyric8 = "";
+     currentLyric: function() { 
+      for(let i = 0; i <= 8; i++) {
+        if (i < 4) {
+          this["lyric" + i] = ""
+        } else {
+          this["lyric" + i] = this.currentLyric[i-4] ? this.currentLyric[i-4].content : "";
+        }
+        
+      }
      },
      currentTrack: {
        // eslint-disable-next-line no-unused-vars
