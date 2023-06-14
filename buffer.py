@@ -216,6 +216,9 @@ class AppBuffer(BrowserBuffer):
 
             self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
 
+            color_list = get_color(url)
+            self.buffer_widget.eval_js_function("setAudioMotion",color_list)
+
     def pick_music_info(self, files):
         infos = []
 
@@ -388,3 +391,37 @@ def is_light_image(img_path):
         return light_pixel_ratio > 0.45
     except:
         return False
+
+def get_color(img_path):
+    img = Image.open(img_path)
+
+    width, height = img.size
+    colors = img.getcolors(width * height)
+    colors = sorted(colors, key=lambda x: -x[0])
+
+    SIMILARITY_THRESHOLD = 100
+    new_colors = [colors[0]]
+    for color in colors[1:]:
+        is_similar = False
+        for new_color in new_colors:
+            distance = ((new_color[1][0] - color[1][0]) ** 2 + (new_color[1][1] - color[1][1]) ** 2 + (new_color[1][2] - color[1][2]) ** 2) ** 0.5
+            if distance < SIMILARITY_THRESHOLD:
+                is_similar = True
+                break
+        if not is_similar:
+            new_colors.append(color)
+        if len(new_colors) == 10:
+            break
+
+    sorted_colors = []
+    for count, rgb_color in new_colors:
+        hsl_color = colorsys.rgb_to_hls(rgb_color[0] / 255, rgb_color[1] / 255, rgb_color[2] / 255)
+        if hsl_color[1] > 0.1 and hsl_color[2] > 0.1 and hsl_color[2] < 0.8:
+            sorted_colors.append((count, rgb_color, hsl_color))
+    sorted_colors = sorted(sorted_colors, key=lambda x: (x[2][0], -x[2][1], -x[2][2]))
+
+    results = []
+    for count, rgb_color, _ in sorted_colors:
+        hex_color = "#{:02x}{:02x}{:02x}".format(rgb_color[0], rgb_color[1], rgb_color[2])
+        results.append(hex_color)
+    return results
