@@ -180,13 +180,16 @@ class AppBuffer(BrowserBuffer):
 
 
     def pick_tag_title(self, file, tags):
-        return tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
+        s = tags["TITLE"][0].strip() if "TITLE" in tags and len(tags["TITLE"]) > 0 else os.path.splitext(os.path.basename(file))[0]
+        return self.convert_to_utf8(s)
 
     def pick_tag_artist(self, tags):
-        return tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else ""
+        s = tags["ARTIST"][0].strip() if "ARTIST" in tags and len(tags["ARTIST"]) > 0 else ""
+        return self.convert_to_utf8(s)
 
     def pick_tag_album(self, tags):
-        return tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
+        s = tags["ALBUM"][0].strip() if "ALBUM" in tags and len(tags["ALBUM"]) > 0 else ""
+        return self.convert_to_utf8(s)
 
     def pick_music_info(self, files):
         infos = []
@@ -271,6 +274,8 @@ class AppBuffer(BrowserBuffer):
     def convert_to_utf8(self, gbk_str):
         try:
             return gbk_str.encode('latin1').decode('gbk')
+        except UnicodeEncodeError:
+            return gbk_str
         except UnicodeDecodeError:
             return gbk_str
 
