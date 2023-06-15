@@ -11,7 +11,7 @@
     <div
       class="info"
       :style="{ 'color': foregroundColor }">
-      <div>
+      <div class="name">
         {{ name }}
       </div>
       <div>
@@ -347,8 +347,8 @@
  }
 
  .coverBox {
-   width: 60px;
-   margin-left: 30px;
+   width: 90px;
+   padding-left: 20px;
  }
  
  .cover {
@@ -358,11 +358,15 @@
  .info {
    width: 30%;
    user-select: none;
-   padding-left: 30px;
+   padding-left: 15px;
 
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
+ }
+
+ .name {
+   font-weight: bold;
  }
 
  .control {
