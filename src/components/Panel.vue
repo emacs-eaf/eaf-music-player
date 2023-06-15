@@ -204,6 +204,10 @@
      },
 
      setAudioMotion(colorList) {
+       if (colorList.length === 0) {
+         colorList = [this.foregroundColor];
+       }
+
        const options = {
          bgColor: '#011a35', // background color (optional) - defaults to '#111'
          dir: 'h',           // add this property to create a horizontal gradient (optional)

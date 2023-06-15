@@ -60,6 +60,8 @@ class AppBuffer(BrowserBuffer):
         self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
         self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
 
+        self.theme_background_rgb_color = hex_to_rgb(self.theme_background_color)
+
         if not os.path.exists(self.lyrics_cache_dir):
             os.makedirs(self.lyrics_cache_dir)
         if not os.path.exists(self.icon_cache_dir):
@@ -213,8 +215,9 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
 
             try:
-                color_list = get_color(url)
-                self.buffer_widget.eval_js_function("setAudioMotion",color_list)
+                color_list = get_color(url, self.theme_background_rgb_color)
+
+                self.buffer_widget.eval_js_function("setAudioMotion", color_list)
             except Exception as e:
                 print(f'auido motion get color failed: {e}')
 
@@ -390,7 +393,21 @@ def is_light_image(img_path):
     except:
         return False
 
-def get_color(img_path):
+def color_is_similar(color, new_color, similarity_threshold):
+    distance = ((new_color[0] - color[0]) ** 2 + (new_color[1] - color[1]) ** 2 + (new_color[2] - color[2]) ** 2) ** 0.5
+    return distance < similarity_threshold
+
+def relative_luminance(color):
+    r, g, b = (c / 255 for c in color)
+    gamma_corrected = tuple(c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055)**2.4 for c in (r, g, b))
+    return 0.2126 * gamma_corrected[0] + 0.7152 * gamma_corrected[1] + 0.0722 * gamma_corrected[2]
+
+def contrast_ratio(color1, color2):
+    l1 = relative_luminance(color1)
+    l2 = relative_luminance(color2)
+    return (l1 + 0.05) / (l2 + 0.05) if l1 > l2 else (l2 + 0.05) / (l1 + 0.05)
+
+def get_color(img_path, background_color):
     if not os.path.exists(img_path):
         return []
     img = Image.open(img_path)
@@ -399,24 +416,29 @@ def get_color(img_path):
     colors = img.getcolors(width * height)
     colors = sorted(colors, key=lambda x: -x[0])
 
-    SIMILARITY_THRESHOLD = 100
     new_colors = [colors[0]]
     for color in colors[1:]:
         is_similar = False
         for new_color in new_colors:
-            distance = ((new_color[1][0] - color[1][0]) ** 2 + (new_color[1][1] - color[1][1]) ** 2 + (new_color[1][2] - color[1][2]) ** 2) ** 0.5
-            if distance < SIMILARITY_THRESHOLD:
+            if color_is_similar(color[1], new_color[1], 100):
                 is_similar = True
                 break
+
         if not is_similar:
             new_colors.append(color)
+
         if len(new_colors) == 10:
             break
 
     sorted_colors = []
     for count, rgb_color in new_colors:
         hsl_color = colorsys.rgb_to_hls(rgb_color[0] / 255, rgb_color[1] / 255, rgb_color[2] / 255)
-        if hsl_color[1] > 0.1 and hsl_color[2] > 0.1 and hsl_color[2] < 0.8:
+
+        # Color won't add to audio gradient if color match below rules:
+        # 1. The color is too bright
+        # 2. The color is too dark
+        # 3. The contrast between the color and the emacs background color is too low
+        if hsl_color[1] > 0.1 and hsl_color[2] > 0.1 and hsl_color[2] < 0.8 and contrast_ratio(rgb_color, background_color) > 2:
             sorted_colors.append((count, rgb_color, hsl_color))
     sorted_colors = sorted(sorted_colors, key=lambda x: (x[2][0], -x[2][1], -x[2][2]))
 
@@ -425,3 +447,12 @@ def get_color(img_path):
         hex_color = "#{:02x}{:02x}{:02x}".format(rgb_color[0], rgb_color[1], rgb_color[2])
         results.append(hex_color)
     return results
+
+def hex_to_rgb(hex_color):
+    if hex_color.startswith("#"):
+        hex_color = hex_color[1:]
+
+    if len(hex_color) != 6:
+        return None
+
+    return tuple(int(hex_color[i:i+2], 16) for i in range(0, 6, 2))
