@@ -11,15 +11,22 @@
       <div class="item-index">
         {{ padNumber(index + 1, numberWidth) }}
       </div>
-
-      <div class="item-name">
-        {{ item.name }}
+      <div class="coverBox">
+        <img class="cover" :src="coverList[index]"/>
       </div>
-      <div class="item-artist">
-        {{ item.artist }}
+      <div class ="name-artist-box">
+        <div class="item-name">
+          {{ item.name }}
+        </div>
+        <div class="item-artist">
+          {{ item.artist }}
+        </div>
       </div>
       <div class="item-album">
         {{ item.album }}
+      </div>
+      <div class="total-time">
+        {{item.time}}
       </div>
     </div>
   </div>
@@ -32,15 +39,15 @@
    name: 'Playlist',
    data() {
      return {
-
      }
    },
-   computed: mapState([
+   computed:mapState([
      "currentItem",
      "currentTrack",
      "currentTrackIndex",
      "numberWidth",
      "fileInfos",
+     "coverList"
    ]),
    watch: {
      currentTrack: {
@@ -69,6 +76,7 @@
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
      window.updateTagInfo = this.updateTagInfo;
+     window.setCoverList = this.setCoverList;
    },
    created() {
    },
@@ -102,6 +110,10 @@
        } else {
          return this.foregroundColor;
        }
+     },
+
+     setCoverList(list) {
+       this.$store.commit("updateCoverList", list);
      },
 
      scrollUp() {
@@ -183,18 +195,32 @@
  }
 
  .item-index {
-   margin-right: 10px;
+   margin-right: 15px;
+ }
+
+ .coverBox {
+   width: 45px;
+   margin-left: 5px;
+   margin-right: 15px;
+ }
+
+ .cover {
+   width: 100%;
+ }
+
+ .name-artist-box {
+   width: 40%;
  }
 
  .item-name {
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
-   width: 40%;
+   font-weight: bold;
+   margin-bottom: 5px;
  }
 
  .item-artist {
-   width: 20%;
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;

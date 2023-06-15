@@ -118,6 +118,7 @@ class AppBuffer(BrowserBuffer):
         self.music_infos = self.pick_music_info(files)
 
         self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
+        self.init_play_list_covers()
 
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
@@ -213,6 +214,17 @@ class AppBuffer(BrowserBuffer):
 
             color_list = get_color(url)
             self.buffer_widget.eval_js_function("setAudioMotion",color_list)
+
+    def init_play_list_covers(self):
+        cover_list = []
+        default_cover = self.get_default_cover_path()
+        for item in self.music_infos:
+            cover_path = get_cover_path(self.cover_cache_dir, item['artist'], item['name'])
+            if not os.path.exists(cover_path):
+                cover_list.append(default_cover)
+            else:
+                cover_list.append(cover_path)
+        self.buffer_widget.eval_js_function("setCoverList", cover_list)
 
     def pick_music_info(self, files):
         infos = []
