@@ -4,13 +4,20 @@ from typing import Dict, Optional
 from collections import OrderedDict
 
 
+lrc_pattern = re.compile(r'^\[\d{2}:\d{2}\.\d+\]')
+
 def refine(s: str) -> str:
-    s = re.sub(r'\(.*?\)', '', s)
     s = re.sub(r'[\(\)\[\]\/!?@#￥%…&*・]', ' ', s)
     return re.sub(r'\s+', ' ', s).strip()
 
 def check_lyric_is_valid(lyric: str) -> bool:
-    return len(lyric.splitlines()) > 10
+    lines = lyric.splitlines()
+    if len(lines) < 10:
+        return False
+    return bool(lrc_pattern.match(lines[8]))
+
+def refine_lyrics(lyrics: str) -> str:
+    return re.sub(r'\[(ti|ar|al|by|offset):.*?\](\n|\r\n)', '', lyrics)
 
 
 class MusicService:
@@ -39,7 +46,7 @@ class MusicService:
                       f"artist: {artist}, album: {album}")
                 result = provider.lyric(name, artist, album)
                 if result and check_lyric_is_valid(result):
-                    return result
+                    return refine_lyrics(result)
             except Exception as e:
                 print(f"[MusicService] provider: {provider.provider_name} lyric error: {e}")
                 continue
