@@ -12,7 +12,6 @@ const store = new Vuex.Store({
         currentLyric: "",
         currentCover: "",
         lyricColor: "#CCCCCC",
-        coverList: []
     },
     getters: {
         currentTrack: state => {
@@ -23,9 +22,6 @@ const store = new Vuex.Store({
         },
         fileInfos: state => {
             return state.fileInfos;
-        },
-        coverList: state => {
-            return state.coverList;
         }
     },
     mutations: {
@@ -74,9 +70,6 @@ const store = new Vuex.Store({
         updateLyricColor(state, color) {
             state.lyricColor = color;
         },
-        updateCoverList(state, list) {
-            state.coverList = list;
-        }
     },
 
 })

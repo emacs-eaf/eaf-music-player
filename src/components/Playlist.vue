@@ -12,7 +12,7 @@
         {{ padNumber(index + 1, numberWidth) }}
       </div>
       <div class="coverBox">
-        <img class="cover" :src="coverList[index]"/>
+        <img class="cover" :src="item.cover"/>
       </div>
       <div class ="name-artist-box">
         <div class="item-name">
@@ -47,7 +47,6 @@
      "currentTrackIndex",
      "numberWidth",
      "fileInfos",
-     "coverList"
    ]),
    watch: {
      currentTrack: {
@@ -76,7 +75,6 @@
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
      window.updateTagInfo = this.updateTagInfo;
-     window.setCoverList = this.setCoverList;
    },
    created() {
    },
@@ -110,10 +108,6 @@
        } else {
          return this.foregroundColor;
        }
-     },
-
-     setCoverList(list) {
-       this.$store.commit("updateCoverList", list);
      },
 
      scrollUp() {
