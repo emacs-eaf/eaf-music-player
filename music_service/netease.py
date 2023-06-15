@@ -94,12 +94,28 @@ class NeteaseMusicApi(BaseProvider):
     provider_name = "netease"
 
     def lyric(self, name: str, artist: str = "", album: str = "") -> Optional[str]:
-        keywords = f"{name} {artist} {album}".strip()
+        keywords = f"{name} {artist}".strip()
         search_result = search_song(keywords)
         songs = search_result.get("result", {}).get("songs", None)
         if not songs:
             return None
-        song_id = songs[0].get("id", 0)
+        song_id = 0
+        for song in songs:
+            song_name = song.get('name', '')
+            artist = artist.strip()
+            if artist:
+                song_artists = [item.get('name', '') for item in song.get('artists', [])]
+                if song_name == name and any([x in artist for x in song_artists]):
+                    song_id = song.get("id", 0)
+                    break
+            else:
+                if song_name == name:
+                    song_id = song.get('id', 0)
+                    break
+
+        # if not song_id:
+        #     song_id = songs[0].get("id", 0)
+
         if not song_id:
             return None
         lyric_result = download_lyric(song_id)

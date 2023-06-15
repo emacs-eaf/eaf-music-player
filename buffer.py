@@ -194,6 +194,7 @@ class AppBuffer(BrowserBuffer):
             with open(lyric_path, "r") as f:
                 self.update_lyric(current_track, f.read())
         else:
+            self.update_lyric(current_track, '[99:00.000]正在搜索歌词，请稍等')
             fetch_lyric_thread = FetchLyric(current_track, self.lyrics_cache_dir, title, artist, album)
             fetch_lyric_thread.fetch_result.connect(self.update_lyric)
             self.thread_queue.append(fetch_lyric_thread)
@@ -211,8 +212,11 @@ class AppBuffer(BrowserBuffer):
 
             self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
 
-            color_list = get_color(url)
-            self.buffer_widget.eval_js_function("setAudioMotion",color_list)
+            try:
+                color_list = get_color(url)
+                self.buffer_widget.eval_js_function("setAudioMotion",color_list)
+            except Exception as e:
+                print(f'auido motion get color failed: {e}')
 
     def pick_music_info(self, files):
         infos = []
@@ -344,13 +348,12 @@ class FetchLyric(QThread):
 
     def run(self):
         result = music_service.lyric(self.title, self.artist, self.album)
-        if not result:
-            return
-
-        lyric_path = get_lyric_path(self.lyrics_cache_dir, self.artist, self.title)
-        with open(lyric_path, "w") as f:
-            f.write(result)
-
+        if result:
+            lyric_path = get_lyric_path(self.lyrics_cache_dir, self.artist, self.title)
+            with open(lyric_path, "w") as f:
+                f.write(result)
+        else:
+            result = '[99:00.000]暂无歌词，请欣赏'
         self.fetch_result.emit(self.track, result)
 
 
@@ -388,6 +391,8 @@ def is_light_image(img_path):
         return False
 
 def get_color(img_path):
+    if not os.path.exists(img_path):
+        return []
     img = Image.open(img_path)
 
     width, height = img.size
