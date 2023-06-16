@@ -23,21 +23,24 @@
       "pytaglib",
       "certifi",
       "pycryptodome",
-      "rsa"
+      "rsa",
+      "Pillow"
     ],
     "win32": [
       "mutagen",
       "pytaglib",
       "certifi",
       "pycryptodome",
-      "rsa"
+      "rsa",
+      "Pillow"
     ],
     "darwin": [
       "mutagen",
       "pytaglib",
       "certifi",
       "pycryptodome",
-      "rsa"
+      "rsa",
+      "Pillow"
     ]
   },
   "npm_global": [
