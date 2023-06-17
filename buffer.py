@@ -32,6 +32,8 @@ import sys
 import mimetypes
 import taglib
 import colorsys
+import hashlib
+import random
 
 try:
     from mutagen.easyid3 import EasyID3
@@ -177,6 +179,7 @@ class AppBuffer(BrowserBuffer):
         if shutil.which("album-art"):
             fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title)
             fetch_cover_thread.fetch_result.connect(self.update_cover)
+            fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
             self.thread_queue.append(fetch_cover_thread)
             fetch_cover_thread.start()
         else:
@@ -211,15 +214,18 @@ class AppBuffer(BrowserBuffer):
         # Only update cover when
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateCover", url)
-
             self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
-
-            try:
-                color_list = get_color(url, self.theme_background_rgb_color)
-
-                self.buffer_widget.eval_js_function("setAudioMotion", color_list)
-            except Exception as e:
-                print(f'auido motion get color failed: {e}')
+            
+            self.update_audio_motion_gradient(url)
+                
+    def update_audio_motion_gradient(self, url=None):
+        try:
+            tags = self.get_audio_taginfos(self.vue_current_track)
+            title = tags['title']
+            color_list = get_color(url, title, self.theme_background_rgb_color)
+            self.buffer_widget.eval_js_function("setAudioMotion", color_list)
+        except Exception as e:
+            print(f'auido motion get color failed: {e}')
 
     def pick_music_info(self, files):
         infos = []
@@ -307,6 +313,7 @@ class AppBuffer(BrowserBuffer):
 class FetchCover(QThread):
 
     fetch_result = QtCore.pyqtSignal(str, str)
+    fetch_failed = QtCore.pyqtSignal()
 
     def __init__(self, track, cover_cache_dir, artist, title):
         QThread.__init__(self)
@@ -336,6 +343,7 @@ class FetchCover(QThread):
                 self.fetch_result.emit(self.track, cover_path)
             except:
                 print("Fetch cover for {} failed.".format(self.track))
+                self.fetch_failed.emit()
 
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
@@ -407,45 +415,51 @@ def contrast_ratio(color1, color2):
     l2 = relative_luminance(color2)
     return (l1 + 0.05) / (l2 + 0.05) if l1 > l2 else (l2 + 0.05) / (l1 + 0.05)
 
-def get_color(img_path, background_color):
-    if not os.path.exists(img_path):
-        return []
-    img = Image.open(img_path)
-
-    width, height = img.size
-    colors = img.getcolors(width * height)
-    colors = sorted(colors, key=lambda x: -x[0])
-
-    new_colors = [colors[0]]
-    for color in colors[1:]:
-        is_similar = False
-        for new_color in new_colors:
-            if color_is_similar(color[1], new_color[1], 100):
-                is_similar = True
-                break
-
-        if not is_similar:
-            new_colors.append(color)
-
-        if len(new_colors) == 10:
-            break
-
-    sorted_colors = []
-    for count, rgb_color in new_colors:
-        hsl_color = colorsys.rgb_to_hls(rgb_color[0] / 255, rgb_color[1] / 255, rgb_color[2] / 255)
-
-        # Color won't add to audio gradient if color match below rules:
-        # 1. The color is too bright
-        # 2. The color is too dark
-        # 3. The contrast between the color and the emacs background color is too low
-        if hsl_color[1] > 0.1 and hsl_color[2] > 0.1 and hsl_color[2] < 0.8 and contrast_ratio(rgb_color, background_color) > 2:
-            sorted_colors.append((count, rgb_color, hsl_color))
-    sorted_colors = sorted(sorted_colors, key=lambda x: (x[2][0], -x[2][1], -x[2][2]))
-
+def get_color(img_path, title, background_color):
     results = []
-    for count, rgb_color, _ in sorted_colors:
-        hex_color = "#{:02x}{:02x}{:02x}".format(rgb_color[0], rgb_color[1], rgb_color[2])
-        results.append(hex_color)
+    
+    if img_path:
+        if not os.path.exists(img_path):
+            return []
+        img = Image.open(img_path)
+    
+        width, height = img.size
+        colors = img.getcolors(width * height)
+        colors = sorted(colors, key=lambda x: -x[0])
+    
+        new_colors = [colors[0]]
+        for color in colors[1:]:
+            is_similar = False
+            for new_color in new_colors:
+                if color_is_similar(color[1], new_color[1], 100):
+                    is_similar = True
+                    break
+    
+            if not is_similar:
+                new_colors.append(color)
+    
+            if len(new_colors) == 10:
+                break
+    
+        sorted_colors = []
+        for count, rgb_color in new_colors:
+            hsl_color = colorsys.rgb_to_hls(rgb_color[0] / 255, rgb_color[1] / 255, rgb_color[2] / 255)
+    
+            # Color won't add to audio gradient if color match below rules:
+            # 1. The color is too bright
+            # 2. The color is too dark
+            # 3. The contrast between the color and the emacs background color is too low
+            if hsl_color[1] > 0.1 and hsl_color[2] > 0.1 and hsl_color[2] < 0.8 and contrast_ratio(rgb_color, background_color) > 2:
+                sorted_colors.append((count, rgb_color, hsl_color))
+        sorted_colors = sorted(sorted_colors, key=lambda x: (x[2][0], -x[2][1], -x[2][2]))
+
+        for count, rgb_color, _ in sorted_colors:
+            hex_color = "#{:02x}{:02x}{:02x}".format(rgb_color[0], rgb_color[1], rgb_color[2])
+            results.append(hex_color)
+        
+    if len(results) < 2:
+        results = generate_colors(title, background_color)
+        
     return results
 
 def hex_to_rgb(hex_color):
@@ -456,3 +470,28 @@ def hex_to_rgb(hex_color):
         return None
 
     return tuple(int(hex_color[i:i+2], 16) for i in range(0, 6, 2))
+
+def rgb_to_hex(rgb_color):
+    return '#' + ''.join([format(c, '02x') for c in rgb_color])
+
+def generate_colors(song_name, bg_color):
+    random.seed(hashlib.md5(song_name.encode('utf-8')).hexdigest())
+    colors = []
+    
+    def random_color():
+        h = random.uniform(0, 1)
+        s = random.uniform(0.5, 1)
+        v = random.uniform(0.1, 0.8)
+        return tuple(int(c * 255) for c in colorsys.hsv_to_rgb(h, s, v))
+    
+    while True:
+        candidates = [random_color() for _ in range(100)]
+        
+        for new_color in candidates:
+            if contrast_ratio(new_color, bg_color) > 2:
+                colors.append(rgb_to_hex(new_color))
+            
+            if len(colors) > 4:
+                return colors
+
+    return colors
