@@ -17,9 +17,12 @@ Music Player application for the [Emacs Application Framework](https://github.co
 
 ### Dependency List
 
-| Package         | Description   |
-| :--------       | :------       |
-| python-pytaglib | Parse ID3 tag |
+| Package                     | Description            |
+| :--------                   | :------                |
+| python-pytaglib, mutagen    | Parse ID3 tag          |
+| certifi, pycryptodome, rsa, | Fetch Lyrics and Cover |
+| album-art                   | Fetch Lyrics           |
+| Pillow                      | Parse Cover Pixel      |
 
 ### The keybinding of EAF Music Player.
 
