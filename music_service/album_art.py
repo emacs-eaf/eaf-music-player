@@ -17,4 +17,4 @@ class AlbumArt(BaseProvider):
         else:
             fake_album = album if album else name
             cmd = f"album-art '{fake_album}'"
-        return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+        return subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout.strip()
