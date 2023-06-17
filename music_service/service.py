@@ -1,4 +1,5 @@
 import re
+import html
 from music_service.base import BaseProvider
 from typing import Dict, Optional
 from collections import OrderedDict
@@ -46,7 +47,7 @@ class MusicService:
                       f"artist: {artist}, album: {album}")
                 result = provider.lyric(name, artist, album)
                 if result and check_lyric_is_valid(result):
-                    return refine_lyrics(result)
+                    return html.unescape(refine_lyrics(result))
             except Exception as e:
                 print(f"[MusicService] provider: {provider.provider_name} lyric error: {e}")
                 continue
