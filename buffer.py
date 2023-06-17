@@ -41,6 +41,10 @@ except ImportError:
 
 sys.path.append(os.path.dirname(__file__))
 from music_service import music_service
+from music_service.utils import get_logger
+
+
+log = get_logger('AppBuffer')
 
 
 class AppBuffer(BrowserBuffer):
@@ -222,7 +226,7 @@ class AppBuffer(BrowserBuffer):
             color_list = get_color(url, title, self.theme_background_rgb_color)
             self.buffer_widget.eval_js_function("setAudioMotion", color_list)
         except Exception as e:
-            print(f'auido motion get color failed: {e}')
+            log.exception(f'auido motion get color failed: {e}')
 
     def pick_music_info(self, files):
         infos = []
@@ -334,7 +338,7 @@ class FetchCover(QThread):
             if result:
                 self.fetch_result.emit(self.track, cover_path)
             else:
-                print(f"Fetch cover name for {self.title} failed.")
+                log.error(f"Fetch cover name for {self.title} failed.")
                 self.fetch_failed.emit()
 
 
@@ -391,7 +395,8 @@ def is_light_image(img_path):
 
         light_pixel_ratio = light_pixels / len(pixels)
         return light_pixel_ratio > 0.45
-    except:
+    except Exception as e:
+        log.exception(f'check is light image error: {e}')
         return False
 
 def color_is_similar(color, new_color, similarity_threshold):
@@ -399,6 +404,7 @@ def color_is_similar(color, new_color, similarity_threshold):
     return distance < similarity_threshold
 
 def relative_luminance(color):
+    color = color[:3]  # fix rgba error
     r, g, b = (c / 255 for c in color)
     gamma_corrected = tuple(c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055)**2.4 for c in (r, g, b))
     return 0.2126 * gamma_corrected[0] + 0.7152 * gamma_corrected[1] + 0.0722 * gamma_corrected[2]

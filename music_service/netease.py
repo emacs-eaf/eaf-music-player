@@ -127,7 +127,6 @@ class NeteaseMusicApi(BaseProvider):
             data = weapi_encrypt(data)
         return self._session.post(url, data=data, headers=headers).json()
 
-
     def api_search_song(self, keyword: str, search_type: int = 1, limit: int = 10, offset: int = 0):
         url = 'https://music.163.com/weapi/search/get'
         data = {
