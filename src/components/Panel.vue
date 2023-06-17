@@ -130,8 +130,8 @@
        document.getElementById('audio-visual'),
        {
          source: document.getElementById('audio')
-       }
-     )     
+       })     
+     
      let that = this;
 
      this.$root.$on("playItem", this.playItem);
@@ -257,6 +257,8 @@
        this.currentCover = defaultCoverPath;
 
        this.iconKey = new Date();
+       
+       this.setAudioMotion([this.foregroundColor]);
      },
      
      fileIconPath(iconFile) {
