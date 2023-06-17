@@ -179,6 +179,7 @@ class AppBuffer(BrowserBuffer):
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
+            self.buffer_widget.eval_js_function("updateLyricColor", "#CCCCCC")
             fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title, album)
             fetch_cover_thread.fetch_result.connect(self.update_cover)
             self.thread_queue.append(fetch_cover_thread)
