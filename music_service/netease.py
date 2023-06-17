@@ -1,7 +1,5 @@
-from ctypes import Union
 import json
 import random
-from requests.utils import default_headers
 import rsa
 import rsa.core
 import rsa.common
