@@ -26,7 +26,6 @@ from core.webengine import BrowserBuffer    # type: ignore
 from functools import cmp_to_key
 from core.utils import *
 from PIL import Image
-import shutil
 import os
 import sys
 import mimetypes
@@ -170,20 +169,18 @@ class AppBuffer(BrowserBuffer):
         tags = self.get_audio_taginfos(current_track)
         artist = tags['artist']
         title = tags['title']
+        album = tags['album']
         cover_path = get_cover_path(self.cover_cache_dir, artist, title)
 
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
 
-        if shutil.which("album-art"):
-            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title)
-            fetch_cover_thread.fetch_result.connect(self.update_cover)
-            fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
-            self.thread_queue.append(fetch_cover_thread)
-            fetch_cover_thread.start()
-        else:
-            print("Please run `sudo npm i -g album-art' package to fetch cover.")
+        fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title, album)
+        fetch_cover_thread.fetch_result.connect(self.update_cover)
+        fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
+        self.thread_queue.append(fetch_cover_thread)
+        fetch_cover_thread.start()
 
 
     def fetch_lyric(self, current_track):
@@ -315,13 +312,14 @@ class FetchCover(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
     fetch_failed = QtCore.pyqtSignal()
 
-    def __init__(self, track, cover_cache_dir, artist, title):
+    def __init__(self, track, cover_cache_dir, artist, title, album):
         QThread.__init__(self)
 
         self.track = track
         self.cover_cache_dir = cover_cache_dir
         self.artist = artist
         self.title = title
+        self.album = album
 
     def run(self):
         if not os.path.exists(self.cover_cache_dir):
@@ -332,18 +330,13 @@ class FetchCover(QThread):
         if os.path.exists(cover_path):
             self.fetch_result.emit(self.track, cover_path)
         else:
-            import subprocess
-            result = subprocess.run(
-                "album-art '{}' '{}'".format(self.artist, self.title),
-                shell=True, capture_output=True, text=True).stdout
-
-            import urllib.request
-            try:
-                urllib.request.urlretrieve(result, cover_path)
+            result = music_service.fetch_cover(cover_path, self.title, self.artist, self.album)
+            if result:
                 self.fetch_result.emit(self.track, cover_path)
-            except:
-                print("Fetch cover for {} failed.".format(self.track))
+            else:
+                print(f"Fetch cover name for {self.title} failed.")
                 self.fetch_failed.emit()
+
 
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
@@ -358,7 +351,7 @@ class FetchLyric(QThread):
         self.album = album
 
     def run(self):
-        result = music_service.lyric(self.title, self.artist, self.album)
+        result = music_service.fetch_lyric(self.title, self.artist, self.album)
         if result:
             lyric_path = get_lyric_path(self.lyrics_cache_dir, self.artist, self.title)
             with open(lyric_path, "w") as f:
