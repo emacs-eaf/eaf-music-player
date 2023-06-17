@@ -90,7 +90,10 @@ class NeteaseMusicApi(BaseProvider):
         songs = result.get('songs', None)
         if not songs:
             return None
-        return songs[0].get('al', {}).get('picUrl', None)
+        url = songs[0].get('al', {}).get('picUrl', None)
+        if url:
+            return f'{url}?param=200y200'
+        return None
 
     def get_song_id(self, name: str, artist: str = '', album: str = '', fuzzy: bool = True) -> Optional[int]:
         keywords = f'{name} {artist}'.strip()
