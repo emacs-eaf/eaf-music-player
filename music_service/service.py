@@ -58,7 +58,7 @@ class MusicService:
             del self._prividers[name]
 
     def get_provider(self, name: str) -> Optional[BaseProvider]:
-        return self.get_provider.get(name, None)
+        return self._prividers.get(name, None)
 
     def fetch_lyric(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
         name = refine(name)
