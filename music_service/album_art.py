@@ -1,4 +1,3 @@
-import urllib.request
 import subprocess
 from typing import Optional
 from music_service.base import BaseProvider

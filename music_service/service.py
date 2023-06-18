@@ -1,4 +1,3 @@
-from pickle import FALSE
 import re
 import html
 import os.path
