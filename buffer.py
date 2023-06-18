@@ -179,13 +179,13 @@ class AppBuffer(BrowserBuffer):
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
-
-        fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title, album)
-        fetch_cover_thread.fetch_result.connect(self.update_cover)
-        fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
-        self.thread_queue.append(fetch_cover_thread)
-        fetch_cover_thread.start()
-
+            self.buffer_widget.eval_js_function("updateLyricColor", "#CCCCCC")
+            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title, album)
+            fetch_cover_thread.fetch_result.connect(self.update_cover)
+            self.thread_queue.append(fetch_cover_thread)
+            fetch_cover_thread.start()
+        else:
+            self.update_cover(current_track, cover_path)
 
     def fetch_lyric(self, current_track):
         self.buffer_widget.eval_js_function("updateLyric", "")
@@ -215,10 +215,10 @@ class AppBuffer(BrowserBuffer):
         # Only update cover when
         if track == self.vue_current_track:
             self.buffer_widget.eval_js_function("updateCover", url)
-            self.buffer_widget.eval_js_function("updateLyricColor", "#3F3F3F" if is_light_image(url) else "#CCCCCC")
-            
+            self.buffer_widget.eval_js_function("updateLyricColor",
+                                                "#3F3F3F" if is_light_image(url) else "#CCCCCC")
             self.update_audio_motion_gradient(url)
-                
+
     def update_audio_motion_gradient(self, url=None):
         try:
             tags = self.get_audio_taginfos(self.vue_current_track)
@@ -312,9 +312,7 @@ class AppBuffer(BrowserBuffer):
             return gbk_str
 
 class FetchCover(QThread):
-
     fetch_result = QtCore.pyqtSignal(str, str)
-    fetch_failed = QtCore.pyqtSignal()
 
     def __init__(self, track, cover_cache_dir, artist, title, album):
         QThread.__init__(self)
@@ -337,9 +335,6 @@ class FetchCover(QThread):
             result = music_service.fetch_cover(cover_path, self.title, self.artist, self.album)
             if result:
                 self.fetch_result.emit(self.track, cover_path)
-            else:
-                log.error(f"Fetch cover name for {self.title} failed.")
-                self.fetch_failed.emit()
 
 
 class FetchLyric(QThread):
@@ -389,7 +384,7 @@ def is_light_image(img_path):
 
         light_pixels = 0
         for pixel in pixels:
-            r, g, b = pixel
+            r, g, b = pixel[:3]
             if r > 220 or g > 220 or b > 220:
                 light_pixels += 1
 
