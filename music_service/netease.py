@@ -254,8 +254,8 @@ class NeteaseMusicApi(BaseProvider):
         return song_list
 
     def get_song_url(self, song_id: int):
-        result = self.api_song_url(song_id)
-        url = result[0].get('url', '')
+        result = self.api_song_url_v1(song_id)
+        url = result['data'][0].get('url', '')
         return {
             'id': song_id,
             'url': url
