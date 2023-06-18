@@ -1,12 +1,13 @@
-import re
 import html
 import os.path
+import re
+from collections import OrderedDict
+from typing import Dict, Optional
+
 from PIL import Image
+
 from music_service.base import BaseProvider
 from music_service.utils import download_file, get_logger
-from typing import Dict, Optional
-from collections import OrderedDict
-
 
 lrc_pattern = re.compile(r'^\[\d{2}:\d{2}\.\d+\]')
 log = get_logger('MusicService')

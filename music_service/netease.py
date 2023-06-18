@@ -1,19 +1,19 @@
 import json
 import random
-import rsa
-import rsa.core
-import rsa.common
-import rsa.transform
-import requests
-from enum import Enum
-
 from base64 import b64encode
+from enum import Enum
+from typing import List, Optional, Union
+
+import requests
+import rsa
+import rsa.common
+import rsa.core
+import rsa.transform
 from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import pad
-from typing import Optional, Union, List
-from music_service.base import BaseProvider
 
+from music_service.base import BaseProvider
 
 IV = b'0102030405060708'
 PRESET_KEY = b'0CoJUm6Qyw8W8jud'

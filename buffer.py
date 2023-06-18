@@ -19,20 +19,21 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import colorsys
+import hashlib
+import mimetypes
+import os
+import random
+import sys
+from functools import cmp_to_key
+
+import taglib
+from core.utils import *
+from core.webengine import BrowserBuffer  # type: ignore
+from PIL import Image
 from PyQt6 import QtCore
 from PyQt6.QtCore import QThread
 from PyQt6.QtGui import QColor
-from core.webengine import BrowserBuffer    # type: ignore
-from functools import cmp_to_key
-from core.utils import *
-from PIL import Image
-import os
-import sys
-import mimetypes
-import taglib
-import colorsys
-import hashlib
-import random
 
 try:
     from mutagen.easyid3 import EasyID3
@@ -42,7 +43,6 @@ except ImportError:
 sys.path.append(os.path.dirname(__file__))
 from music_service import music_service
 from music_service.utils import get_logger
-
 
 log = get_logger('AppBuffer')
 
@@ -156,7 +156,7 @@ class AppBuffer(BrowserBuffer):
                     title_key = title_key.lower()
                     artist_key = artist_key.lower()
                     album_key = album_key.lower()
-                except Exception as e:
+                except Exception:
                     pass
         title = self._get_tag_value(tags, title_key)
         if not title:
@@ -415,16 +415,16 @@ def contrast_ratio(color1, color2):
 
 def get_color(img_path, title, background_color):
     results = []
-    
+
     if img_path:
         if not os.path.exists(img_path):
             return []
         img = Image.open(img_path)
-    
+
         width, height = img.size
         colors = img.getcolors(width * height)
         colors = sorted(colors, key=lambda x: -x[0])
-    
+
         new_colors = [colors[0]]
         for color in colors[1:]:
             is_similar = False
@@ -432,17 +432,17 @@ def get_color(img_path, title, background_color):
                 if color_is_similar(color[1], new_color[1], 100):
                     is_similar = True
                     break
-    
+
             if not is_similar:
                 new_colors.append(color)
-    
+
             if len(new_colors) == 10:
                 break
-    
+
         sorted_colors = []
         for count, rgb_color in new_colors:
             hsl_color = colorsys.rgb_to_hls(rgb_color[0] / 255, rgb_color[1] / 255, rgb_color[2] / 255)
-    
+
             # Color won't add to audio gradient if color match below rules:
             # 1. The color is too bright
             # 2. The color is too dark
@@ -454,10 +454,10 @@ def get_color(img_path, title, background_color):
         for count, rgb_color, _ in sorted_colors:
             hex_color = "#{:02x}{:02x}{:02x}".format(rgb_color[0], rgb_color[1], rgb_color[2])
             results.append(hex_color)
-        
+
     if len(results) < 2:
         results = generate_colors(title, background_color)
-        
+
     return results
 
 def hex_to_rgb(hex_color):
@@ -475,20 +475,20 @@ def rgb_to_hex(rgb_color):
 def generate_colors(song_name, bg_color):
     random.seed(hashlib.md5(song_name.encode('utf-8')).hexdigest())
     colors = []
-    
+
     def random_color():
         h = random.uniform(0, 1)
         s = random.uniform(0.5, 1)
         v = random.uniform(0.1, 0.8)
         return tuple(int(c * 255) for c in colorsys.hsv_to_rgb(h, s, v))
-    
+
     while True:
         candidates = [random_color() for _ in range(100)]
-        
+
         for new_color in candidates:
             if contrast_ratio(new_color, bg_color) > 2:
                 colors.append(rgb_to_hex(new_color))
-            
+
             if len(colors) > 4:
                 return colors
 

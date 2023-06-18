@@ -1,9 +1,12 @@
-import time
 import base64
-import requests
-from urllib.parse import quote_plus
+import time
 from typing import Optional
+from urllib.parse import quote_plus
+
+import requests
+
 from music_service.base import BaseProvider
+
 
 class QQMusicApi(BaseProvider):
     provider_name = 'qq'
