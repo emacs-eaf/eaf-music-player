@@ -35,3 +35,10 @@ def get_logger(name: str) -> logging.Logger:
     console_handler.setFormatter(log_formatter)
     logger.addHandler(console_handler)
     return logger
+
+
+def get_cookie_cache_file(name: str) -> str:
+    cookie_cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src', 'cookie_cache')
+    if not os.path.isdir(cookie_cache_dir):
+        os.makedirs(cookie_cache_dir)
+    return os.path.join(cookie_cache_dir, name)
