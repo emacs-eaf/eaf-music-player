@@ -182,6 +182,7 @@ class AppBuffer(BrowserBuffer):
             self.buffer_widget.eval_js_function("updateLyricColor", "#CCCCCC")
             fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title, album)
             fetch_cover_thread.fetch_result.connect(self.update_cover)
+            fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
             self.thread_queue.append(fetch_cover_thread)
             fetch_cover_thread.start()
         else:
@@ -313,6 +314,7 @@ class AppBuffer(BrowserBuffer):
 
 class FetchCover(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
+    fetch_failed = QtCore.pyqtSignal()
 
     def __init__(self, track, cover_cache_dir, artist, title, album):
         QThread.__init__(self)
@@ -335,7 +337,9 @@ class FetchCover(QThread):
             result = music_service.fetch_cover(cover_path, self.title, self.artist, self.album)
             if result:
                 self.fetch_result.emit(self.track, cover_path)
-
+            else:
+                log.error(f"Fetch cover name for {self.title} failed.")
+                self.fetch_failed.emit()
 
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
