@@ -30,7 +30,7 @@
 
 
  export default {
-   name: 'Playlist',
+   name: 'LocalPlaylist',
    data() {
      return {
      }
@@ -47,8 +47,7 @@
    },
    props: {
      backgroundColor: String,
-     foregroundColor: String,
-     pyobject: Object,
+     foregroundColor: String
    },
    watch: {
      localCurrentTrackIndex: function() {
@@ -64,9 +63,6 @@
      window.scrollToBegin = this.scrollToBegin;
      window.scrollToBottom = this.scrollToBottom;
      window.jumpToFile = this.jumpToFile;
-     window.sortByTitle = this.sortByTitle;
-     window.sortByArtist = this.sortByArtist;
-     window.sortByAlbum = this.sortByAlbum;
      window.updateTagInfo = this.updateTagInfo;
    },
    created() {
@@ -131,21 +127,6 @@
        window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.localCurrentTrackPath]);
      },
 
-     sortByTitle() {
-       this.$store.commit("sortLocalTrackInfos", "title");
-       this.pyobject.eval_emacs_function("message", ["Sort by title."]);
-     },
-
-     sortByArtist() {
-       this.$store.commit("sortLocalTrackInfos", "artist");
-       this.pyobject.eval_emacs_function("message", ["Sort by artist."]);
-     },
-     
-     sortByAlbum() {
-       this.$store.commit("sortLocalTrackInfos", "album");
-       this.pyobject.eval_emacs_function("message", ["Sort by album."]);
-     },
-
      updateTagInfo(track, name, artist, album) {
        this.$store.commit("updateLocalTrackTagInfo", { track, name, artist, album });
        this.$store.commit("updatePlayTrackInfo", {name, artist});
@@ -166,6 +147,7 @@
 
    white-space: nowrap;
    text-overflow: ellipsis;
+   overflow: scroll;
  }
 
  .item {

@@ -108,6 +108,7 @@
     ("C-t" . "js_sort_by_artist")
     ("C-m" . "js_sort_by_album")
     ("C-l" . "js_change_panel")
+    ("C-u" . "js_toggle_play_source")
     ("F" . "open_link")
     ("e" . "edit_tag_info")
     ("s" . "show_tag_info")

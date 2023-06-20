@@ -56,9 +56,9 @@ class AppBuffer(BrowserBuffer):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
         self.play_source = PlaySourceType.Local
-        self.play_source_index = 0
+        self.play_track_key = ''
 
-        self.music_infos = []
+        self.local_tracks = {}
         self.thread_queue = []
 
         self.first_file = os.path.expanduser(url)
@@ -125,24 +125,25 @@ class AppBuffer(BrowserBuffer):
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
 
-        self.music_infos = self.pick_music_info(files)
-        self.buffer_widget.eval_js_function('addLocalTrackInfos', self.music_infos)
+        track_list = self.pick_music_info(files)
+        self.local_tracks = {x['path']:x for x in track_list}
+        self.buffer_widget.eval_js_function('addLocalTrackInfos', track_list)
 
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
 
-    @QtCore.pyqtSlot(str, int)
-    def vue_update_current_track(self, play_source, play_source_index):
-        log.debug(f'start play source: {play_source}, index: {play_source_index}')
+    @QtCore.pyqtSlot(str, str)
+    def vue_update_current_track(self, play_source, play_track_key):
+        log.debug(f'start play source: {play_source}, key: {play_track_key}')
         self.play_source = play_source
-        self.play_source_index = play_source_index
+        self.play_track_key = play_track_key
 
         track_infos = self.get_current_play_track_info()
         self.fetch_cover(track_infos)
         self.fetch_lyric(track_infos)
 
     def get_current_track_unikey(self):
-        return f'{self.play_source}_{self.play_source_index}'
+        return f'{self.play_source}_{self.play_track_key}'
 
     def is_current_play_track(self, track_unikey: str) -> bool:
         current_track_unikey = self.get_current_track_unikey()
@@ -153,7 +154,7 @@ class AppBuffer(BrowserBuffer):
 
     def get_current_play_track_info(self):
         track_unikey = self.get_current_track_unikey()
-        infos = self.music_infos[self.play_source_index]
+        infos = self.local_tracks[self.play_track_key]
         infos['unikey'] = track_unikey
         return infos
 
@@ -186,7 +187,6 @@ class AppBuffer(BrowserBuffer):
             'artist': self._get_tag_value(tags, artist_key),
             'album': self._get_tag_value(tags, album_key)
         }
-
 
     def fetch_cover(self, infos):
         artist = infos['artist']

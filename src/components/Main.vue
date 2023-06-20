@@ -1,16 +1,13 @@
 <template>
   <div id="page">
     <div class="content">
-      <Playlist
-        ref="playlist"
-        v-if="currentPanel === 'Playlist'"
-        class="playlist"
+      <ContentPanel
+        v-if="currentPanel === 'ContentPanel'"
         :backgroundColor="backgroundColor"
         :foregroundColor="foregroundColor"
-        :pyobject="pyobject"
         :style="{ 'margin-bottom': panelHeight }">
-      </Playlist>
-      <LyricPanel 
+      </ContentPanel>
+      <LyricPanel
         v-if="currentPanel === 'LyricPanel'"
         class="lyric-panel"
         :currentTime="currentTime"
@@ -19,7 +16,6 @@
       </LyricPanel>
       <Panel
         @getCurrentTime="getCurrentTime"
-        :pyobject="pyobject"
         :style="{ 'height': panelHeight }">
       </Panel>
     </div>
@@ -27,21 +23,21 @@
 </template>
 
 <script>
- import Playlist from '@/components/Playlist.vue'
+ import ContentPanel from '@/components/ContentPanel.vue'
  import Panel from '@/components/Panel.vue'
  import LyricPanel from '@/components/LyricPanel.vue'
  import { QWebChannel } from "qwebchannel";
  export default {
    name: 'App',
    components: {
-     Playlist,
+     ContentPanel,
      Panel,
      LyricPanel
    },
    data() {
      return {
        panelHeight: "90px",
-       currentPanel: "Playlist",
+       currentPanel: "ContentPanel",
        currentTime: "",
        backgroundColor: "",
        foregroundColor: "",
@@ -66,11 +62,10 @@
      },
 
      changePanel() {
-       if (this.currentPanel === "Playlist") {
+       if (this.currentPanel === "ContentPanel") {
          this.currentPanel = "LyricPanel";
        } else {
-         this.currentPanel = "Playlist";
-         this.$root.$emit("currentTrackVisibleInPlayList");
+         this.currentPanel = "ContentPanel";
        }
      },
 
@@ -100,8 +95,5 @@
  }
  ::-webkit-scrollbar {
    display: none;
- }
- .playlist {
-   overflow: scroll;
  }
 </style>

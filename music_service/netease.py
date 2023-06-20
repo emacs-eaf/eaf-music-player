@@ -201,6 +201,9 @@ class NeteaseMusicApi(BaseProvider):
         account = resp.get('account', None)
         if not account:
             return 0
+        status = account.get('status', -1)
+        if status != 0:
+            return 0
         return account.get('id', 0)
 
     def login_qr_create(self):

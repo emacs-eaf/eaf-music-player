@@ -5,6 +5,7 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state: {
+        // local
         localCurrentTrackIndex: 0,
         localNumberWidth: 0,
         localTrackInfos: [],
@@ -20,14 +21,34 @@ const store = new Vuex.Store({
         trackName: "",
         trackArtist: "",
         playSource: 'local',
+
+        // cloud
+        cloudLoginState: false,
+        cloudLoginQr: '',
+        cloudCurrentTrackIndex: 0,
+        cloudNumberWidth: 0,
+        cloudTrackInfos: [],
+
+        // display
+        displaySource: 'local',
     },
     getters: {
         localCurrentTrackPath: state => {
             var track = state.localTrackInfos[state.localCurrentTrackIndex];
             return track.path;
         },
-        currentPlaySourceIndex: state => {
-            return state.localCurrentTrackIndex;
+        currentPlayTrackKey: state => {
+            if (isLocalSourceType(state.playSource)) {
+                return state.localTrackInfos[state.localCurrentTrackIndex].path;
+            } else {
+                return state.cloudTrackInfos[state.cloudCurrentTrackIndex].id;
+            }
+        },
+        isLocalPlaySource: state => {
+            return isLocalSourceType(state.playSource);
+        },
+        isLocalDisplaySource: state => {
+            return isLocalSourceType(state.displaySource);
         }
     },
     mutations: {
@@ -39,9 +60,28 @@ const store = new Vuex.Store({
             state.localTrackInfos = infos;
             state.localNumberWidth = state.localTrackInfos.length.toString().length;
         },
-        sortLocalTrackInfos(state, compareType) {
-            var currentTrack = state.localTrackInfos[state.localCurrentTrackIndex];
-            state.localTrackInfos.sort(function (a, b) {
+        updateLocalTrackTagInfo(state, payload) {
+            var tracks = state.localTrackInfos.map(function (track) { return track.path });
+            var index = tracks.indexOf(payload.track);
+
+            state.localTrackInfos[index].name = payload.name;
+            state.localTrackInfos[index].artist = payload.artist;
+            state.localTrackInfos[index].album = payload.album;
+        },
+
+        // sort
+        sortTrackInfos(state, compareType) {
+            var isLocal = isLocalSourceType(state.displaySource)
+            var trackInfos = null;
+            var currentTrack = null;
+            if (isLocal) {
+                currentTrack = state.localTrackInfos[state.localCurrentTrackIndex];
+                trackInfos = state.localTrackInfos;
+            } else {
+                currentTrack = state.cloudTrackInfos[state.cloudCurrentTrackIndex];
+                trackInfos = state.cloudTrackInfos;
+            }
+            trackInfos.sort(function (a, b) {
                 var compareA, compareB;
                 if (compareType === "title") {
                     compareA = a.name;
@@ -55,15 +95,14 @@ const store = new Vuex.Store({
                 }
                 return charCompare(compareA, compareB);
             });
-            state.localCurrentTrackIndex = state.localTrackInfos.indexOf(currentTrack);
-        },
-        updateLocalTrackTagInfo(state, payload) {
-            var tracks = state.localTrackInfos.map(function (track) { return track.path });
-            var index = tracks.indexOf(payload.track);
 
-            state.localTrackInfos[index].name = payload.name;
-            state.localTrackInfos[index].artist = payload.artist;
-            state.localTrackInfos[index].album = payload.album;
+            if (isLocal) {
+                state.localTrackInfos = trackInfos;
+                state.localCurrentTrackIndex = trackInfos.indexOf(currentTrack);
+            } else {
+                state.cloudTrackInfos = trackInfos;
+                state.cloudCurrentTrackIndex = trackInfos.indexOf(currentTrack);
+            }
         },
 
         // lyric and cover
@@ -79,7 +118,7 @@ const store = new Vuex.Store({
 
         // player
         playTrack(state, track) {
-            if (isLocalTrack(track)) {
+            if (isLocalSourceType(state.playSource)) {
                 state.audioSource = track.path
             } else {
                 state.audioSource = ''
@@ -93,6 +132,23 @@ const store = new Vuex.Store({
         },
         setPlaySource(state, sourceType) {
             state.playSource = sourceType
+        },
+
+        // cloud
+        updateCloudLoginState(state, val) {
+            state.cloudLoginState = val;
+        },
+        updateCloudTrackInfos(state, infos) {
+            state.cloudTrackInfos = infos;
+            state.cloudNumberWidth = state.cloudTrackInfos.length.toString().length;
+        },
+        updateCloudLoginQr(state, val) {
+            state.cloudLoginQr = val;
+        },
+
+        // display
+        updateDisplaySource(state, val) {
+            state.displaySource = val;
         }
     },
     actions: {
@@ -156,8 +212,8 @@ function notChinese(char) {
     return 0 <= charCode && charCode <= 128;
 }
 
-function isLocalTrack(info) {
-    return 'path' in info
+function isLocalSourceType(source) {
+    return source === 'local'
 }
 
 export default store

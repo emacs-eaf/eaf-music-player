@@ -96,13 +96,13 @@
        "playSource"
      ]),
      ...mapGetters([
-       "currentPlaySourceIndex"
+       "currentPlayTrackKey"
      ])
    },
    watch: {
      audioSource: function(source) {
        window.pyobject.vue_update_current_track(this.playSource,
-                                                this.currentPlaySourceIndex);
+                                                this.currentPlayTrackKey);
        if (source) {
          this.playIcon = "pause-circle";
          this.$refs.player.load();
