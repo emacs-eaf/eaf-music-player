@@ -5,39 +5,43 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state: {
-        currentTrack: "",
-        currentTrackIndex: 0,
-        numberWidth: 0,
-        fileInfos: [],
+        localCurrentTrackIndex: 0,
+        localNumberWidth: 0,
+        localTrackInfos: [],
+
+        // lyric
         currentLyric: "",
         currentCover: "",
-        lyricColor: "#CCCCCC"
+        lyricColor: "#CCCCCC",
+
+        // player
+        playMode: "",
+        audioSource: "",
+        trackName: "",
+        trackArtist: "",
+        playSource: 'local',
     },
     getters: {
-        currentTrack: state => {
-            return state.currentTrack;
+        localCurrentTrackPath: state => {
+            var track = state.localTrackInfos[state.localCurrentTrackIndex];
+            return track.path;
         },
-        currentTrackIndex: state => {
-            return state.currentTrackIndex;
-        },
-        fileInfos: state => {
-            return state.fileInfos;
+        currentPlaySourceIndex: state => {
+            return state.localCurrentTrackIndex;
         }
     },
     mutations: {
-        updateCurrentTrack(state, track) {
-            state.currentTrack = track;
-
-            var tracks = state.fileInfos.map(function (track) { return track.path });
-            state.currentTrackIndex = tracks.indexOf(state.currentTrack);
+        // local
+        updateLocalCurrentTrackIndex(state, index) {
+            state.localCurrentTrackIndex = index;
         },
-        updateFileInfos(state, infos) {
-            state.fileInfos = infos;
-            state.numberWidth = state.fileInfos.length.toString().length;
+        updateLocalTrackInfos(state, infos) {
+            state.localTrackInfos = infos;
+            state.localNumberWidth = state.localTrackInfos.length.toString().length;
         },
-        changeSort(state, compareType) {
-            var currentSong = state.fileInfos[state.currentTrackIndex];
-            state.fileInfos.sort(function (a, b) {
+        sortLocalTrackInfos(state, compareType) {
+            var currentTrack = state.localTrackInfos[state.localCurrentTrackIndex];
+            state.localTrackInfos.sort(function (a, b) {
                 var compareA, compareB;
                 if (compareType === "title") {
                     compareA = a.name;
@@ -51,16 +55,18 @@ const store = new Vuex.Store({
                 }
                 return charCompare(compareA, compareB);
             });
-            state.currentTrackIndex = state.fileInfos.indexOf(currentSong);
+            state.localCurrentTrackIndex = state.localTrackInfos.indexOf(currentTrack);
         },
-        updateTrackTagInfo(state, payload) {
-            var tracks = state.fileInfos.map(function (track) { return track.path });
+        updateLocalTrackTagInfo(state, payload) {
+            var tracks = state.localTrackInfos.map(function (track) { return track.path });
             var index = tracks.indexOf(payload.track);
 
-            state.fileInfos[index].name = payload.name;
-            state.fileInfos[index].artist = payload.artist;
-            state.fileInfos[index].album = payload.album;
+            state.localTrackInfos[index].name = payload.name;
+            state.localTrackInfos[index].artist = payload.artist;
+            state.localTrackInfos[index].album = payload.album;
         },
+
+        // lyric and cover
         updateLyric(state, lyric) {
             state.currentLyric = lyric;
         },
@@ -69,10 +75,62 @@ const store = new Vuex.Store({
         },
         updateLyricColor(state, color) {
             state.lyricColor = color;
+        },
+
+        // player
+        playTrack(state, track) {
+            if (isLocalTrack(track)) {
+                state.audioSource = track.path
+            } else {
+                state.audioSource = ''
+            }
+            state.trackName = track.name
+            state.trackArtist = track.artist
+        },
+        updatePlayTrackInfo(state, track) {
+            state.trackName = track.name
+            state.trackArtist = track.artist
+        },
+        setPlaySource(state, sourceType) {
+            state.playSource = sourceType
         }
     },
-
+    actions: {
+        playTrack({commit, state}, index) {
+            var track = state.localTrackInfos[index];
+            commit('updateLocalCurrentTrackIndex', index);
+            commit('playTrack', track);
+        },
+        playPrev({dispatch, state}) {
+            var localCurrentTrackIndex = state.localCurrentTrackIndex;
+            if (localCurrentTrackIndex > 0) {
+                localCurrentTrackIndex -= 1;
+            } else {
+                localCurrentTrackIndex = state.localTrackInfos.length - 1;
+            }
+            dispatch('playTrack', localCurrentTrackIndex);
+        },
+        playNext({dispatch, state}) {
+            var localCurrentTrackIndex = state.localCurrentTrackIndex;
+            if (localCurrentTrackIndex < state.localTrackInfos.length - 1) {
+                localCurrentTrackIndex += 1;
+            } else {
+                localCurrentTrackIndex = 0;
+            }
+            dispatch('playTrack', localCurrentTrackIndex);
+        },
+        playRandom({dispatch, state}) {
+            var min = 0;
+            var max = state.localTrackInfos.length;
+            var randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
+            dispatch('playTrack', randomIndex);
+        },
+        playAgain({dispatch, state}) {
+            dispatch('playTrack', state.localCurrentTrackIndex);
+        }
+    }
 })
+
 function charCompare(charA, charB) {
     if (charA === undefined || charA === null || charA === '' || charA === ' ' || charA === '　') {
         return -1;
@@ -96,6 +154,10 @@ function charCompare(charA, charB) {
 function notChinese(char) {
     const charCode = char.charCodeAt(0);
     return 0 <= charCode && charCode <= 128;
+}
+
+function isLocalTrack(info) {
+    return 'path' in info
 }
 
 export default store

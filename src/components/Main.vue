@@ -58,11 +58,6 @@
    mounted() {
      window.initPlaylist = this.initPlaylist;
      window.changePanel = this.changePanel;
-
-     this.$root.$on("currentTrackVisibleInPlayList", this.currentTrackVisibleInPlayList);
-   },
-   beforeDestroy() {
-     this.$root.off("currentTrackVisibleInPlayList");
    },
    methods: {
      initPlaylist(backgroundColor, foregroundColor) {
@@ -75,21 +70,12 @@
          this.currentPanel = "LyricPanel";
        } else {
          this.currentPanel = "Playlist";
-
          this.$root.$emit("currentTrackVisibleInPlayList");
        }
      },
 
      getCurrentTime(time) {
        this.currentTime = time;
-     },
-
-     currentTrackVisibleInPlayList() {
-       this.$nextTick(function() {
-         if (this.$refs.playlist) {
-           this.$refs.playlist.scrollToCurrentTrack();
-         }
-         })
      }
    }
  }

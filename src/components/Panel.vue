@@ -12,10 +12,10 @@
       class="info"
       :style="{ 'color': foregroundColor }">
       <div>
-        {{ name }}
+        {{ trackName }}
       </div>
       <div>
-        {{ artist }}
+        {{ trackArtist }}
       </div>
     </div>
     <div
@@ -55,7 +55,7 @@
     </div>
     <div class="visual">
       <audio id="audio" ref="player">
-        <source :src="currentTrack">
+        <source :src="audioSource">
       </audio>
       <div id="audio-visual">
       </div>
@@ -64,7 +64,7 @@
 </template>
 
 <script>
- import { mapState } from "vuex";
+ import { mapState, mapGetters } from "vuex";
  import AudioMotionAnalyzer from 'audiomotion-analyzer';
 
  export default {
@@ -77,8 +77,6 @@
        coverCacheDir: "",
        pathSep: "",
        duration: "",
-       name: "",
-       artist: "",
        backgroundColor: "",
        foregroundColor: "",
        /* Download icon from https://www.iconfont.cn/collections/detail?spm=a313x.7781069.0.da5a778a4&cid=18739 */
@@ -90,22 +88,31 @@
        audioMotion: Object,
      }
    },
-   computed: mapState([
-     "currentTrack",
-     "currentTrackIndex",
-     "fileInfos"
-   ]),
+   computed: {
+     ...mapState([
+       "trackName",
+       "trackArtist",
+       "audioSource",
+       "playSource"
+     ]),
+     ...mapGetters([
+       "currentPlaySourceIndex"
+     ])
+   },
    watch: {
-     "fileInfos": function() {
-       if (this.playOrderIcon === "random") {
-         this.playRandom();
+     audioSource: function(source) {
+       window.pyobject.vue_update_current_track(this.playSource,
+                                                this.currentPlaySourceIndex);
+       if (source) {
+         this.playIcon = "pause-circle";
+         this.$refs.player.load();
+         this.$refs.player.play();
        } else {
-         if (this.$refs.player.paused) {
-           this.playItem(this.fileInfos[this.currentTrackIndex]);
-         }
+         this.$refs.player.pause();
+         this.playIcon = "play-circle";
        }
+       this.currentCover = "";
      },
-     
      currentTime: function(newVal) {
        this.$emit('getCurrentTime', newVal);
      }
@@ -126,42 +133,21 @@
      window.updateLyricColor = this.updateLyricColor;
      window.setAudioMotion = this.setAudioMotion;
 
-     this.audioMotion =  new AudioMotionAnalyzer(
+     this.audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
        {
          source: document.getElementById('audio')
        })     
      
      let that = this;
-
-     this.$root.$on("playItem", this.playItem);
-
-     this.$root.$on("updatePanelInfo", this.updatePanelInfo);
-
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
-
      this.$refs.player.addEventListener('timeupdate', () => {
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
    },
    methods: {
-     playItem(item) {
-       this.$store.commit("updateCurrentTrack", item.path);
-
-       this.playIcon = "pause-circle";
-
-       this.name = item.name;
-       this.artist = item.artist;
-
-       this.$refs.player.load();
-       this.$refs.player.play();
-
-       this.currentCover = "";
-     },
-
      updateCover(url) {
-       console.log(url);
        var dynamicallyId = new Date();
        var src = url + "?cache=" + dynamicallyId;
        this.currentCover = src;
@@ -196,11 +182,6 @@
          newLyric.push(newLine);
        })
        this.$store.commit("updateLyric", newLyric);
-     },
-
-     updatePanelInfo(name, artist) {
-       this.name = name;
-       this.artist = artist;
      },
 
      setAudioMotion(colorList) {
@@ -255,9 +236,7 @@
        this.coverCacheDir = coverCacheDir;
        this.pathSep = pathSep;
        this.currentCover = defaultCoverPath;
-
        this.iconKey = new Date();
-       
        this.setAudioMotion([this.foregroundColor]);
      },
      
@@ -300,39 +279,19 @@
      },
 
      playPrev() {
-       var currentTrackIndex = this.currentTrackIndex;
-
-       if (currentTrackIndex > 0) {
-         currentTrackIndex -= 1;
-       } else {
-         currentTrackIndex = this.fileInfos.length - 1;
-       }
-
-       this.playItem(this.fileInfos[currentTrackIndex]);
+       this.$store.dispatch('playPrev');
      },
 
      playNext() {
-       var currentTrackIndex = this.currentTrackIndex;
-
-       if (currentTrackIndex < this.fileInfos.length - 1) {
-         currentTrackIndex += 1;
-       } else {
-         currentTrackIndex = 0;
-       }
-
-       this.playItem(this.fileInfos[currentTrackIndex]);
+       this.$store.dispatch('playNext');
      },
 
      playRandom() {
-       var min = 0;
-       var max = this.fileInfos.length;
-       var randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
-
-       this.playItem(this.fileInfos[randomIndex]);
+       this.$store.dispatch('playRandom');
      },
 
      playAgain() {
-       this.playItem(this.fileInfos[this.currentTrackIndex]);
+       this.$store.dispatch('playAgain');
      }
    }
  }

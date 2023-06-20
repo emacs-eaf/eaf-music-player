@@ -4,12 +4,12 @@
     class="playlist">
     <div
       class="item eaf-music-player-item"
-      v-for="(item, index) in fileInfos"
-      @click="playItem(item)"
+      v-for="(item, index) in localTrackInfos"
+      @click="playItem(index)"
       :key="item.path"
-      :style="{ 'background': itemBackgroundColor(item), 'color': itemForegroundColor(item) }">
+      :style="{ 'background': itemBackgroundColor(index), 'color': itemForegroundColor(index) }">
       <div class="item-index">
-        {{ padNumber(index + 1, numberWidth) }}
+        {{ padNumber(index + 1, localNumberWidth) }}
       </div>
 
       <div class="item-name">
@@ -26,38 +26,37 @@
 </template>
 
 <script>
- import { mapState } from "vuex";
+ import { mapState, mapGetters } from "vuex";
+
 
  export default {
    name: 'Playlist',
    data() {
      return {
-
      }
    },
-   computed: mapState([
-     "currentItem",
-     "currentTrack",
-     "currentTrackIndex",
-     "numberWidth",
-     "fileInfos",
-   ]),
-   watch: {
-     currentTrack: {
-       // eslint-disable-next-line no-unused-vars
-       handler: function(val, oldVal) {
-         window.pyobject.vue_update_current_track(val);
-         this.$root.$emit("currentTrackVisibleInPlayList");
-       }
-     }
+   computed: {
+     ...mapState([
+       "localCurrentTrackIndex",
+       "localNumberWidth",
+       "localTrackInfos",
+     ]),
+     ...mapGetters([
+       "localCurrentTrackPath"
+     ])
    },
    props: {
      backgroundColor: String,
      foregroundColor: String,
      pyobject: Object,
    },
+   watch: {
+     localCurrentTrackIndex: function() {
+       this.scrollToCurrentTrack();
+     }
+   },
    mounted() {
-     window.addFiles = this.addFiles;
+     window.addLocalTrackInfos = this.addLocalTrackInfos;
      window.scrollUp = this.scrollUp;
      window.scrollDown = this.scrollDown;
      window.scrollUpPage = this.scrollUpPage;
@@ -73,31 +72,31 @@
    created() {
    },
    methods: {
-     addFiles(files) {
-       this.$store.commit("updateFileInfos", files);
+     addLocalTrackInfos(infos) {
+       this.$store.commit("updateLocalTrackInfos", infos);
      },
 
-     playItem(item) {
-       this.$root.$emit("playItem", item);
+     playItem(index) {
+       this.$store.commit('setPlaySource', 'local');
+       this.$store.dispatch("playTrack", index)
      },
 
      padNumber(num, size) {
        var s = num+"";
        while (s.length < size) s = "0" + s;
-
        return s;
      },
 
-     itemBackgroundColor(item) {
-       if (item.path == this.currentTrack) {
+     itemBackgroundColor(index) {
+       if (index == this.localCurrentTrackIndex) {
          return this.foregroundColor;
        } else {
          return this.backgroundColor;
        }
      },
 
-     itemForegroundColor(item) {
-       if (item.path == this.currentTrack) {
+     itemForegroundColor(index) {
+       if (index == this.localCurrentTrackIndex) {
          return this.backgroundColor;
        } else {
          return this.foregroundColor;
@@ -129,31 +128,31 @@
      },
 
      jumpToFile() {
-       window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.currentTrack]);
+       window.pyobject.eval_emacs_function("eaf-open-in-file-manager", [this.localCurrentTrackPath]);
      },
 
      sortByTitle() {
-       this.$store.commit("changeSort", "title");
+       this.$store.commit("sortLocalTrackInfos", "title");
        this.pyobject.eval_emacs_function("message", ["Sort by title."]);
      },
 
      sortByArtist() {
-       this.$store.commit("changeSort", "artist");
+       this.$store.commit("sortLocalTrackInfos", "artist");
        this.pyobject.eval_emacs_function("message", ["Sort by artist."]);
      },
      
      sortByAlbum() {
-       this.$store.commit("changeSort", "album");
+       this.$store.commit("sortLocalTrackInfos", "album");
        this.pyobject.eval_emacs_function("message", ["Sort by album."]);
      },
 
      updateTagInfo(track, name, artist, album) {
-       this.$store.commit("updateTrackTagInfo", { track, name, artist, album });
-       this.$root.$emit("updatePanelInfo", name, artist);
+       this.$store.commit("updateLocalTrackTagInfo", { track, name, artist, album });
+       this.$store.commit("updatePlayTrackInfo", {name, artist});
      },
 
      scrollToCurrentTrack() {
-       this.$refs.playlist.children[this.currentTrackIndex].scrollIntoViewIfNeeded(false);
+       this.$refs.playlist.children[this.localCurrentTrackIndex].scrollIntoViewIfNeeded(false);
      }
    }
  }
