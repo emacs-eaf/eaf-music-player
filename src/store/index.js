@@ -23,7 +23,7 @@ const store = new Vuex.Store({
         playSource: 'local',
 
         // cloud
-        cloudLoginState: false,
+        cloudLoginState: true,
         cloudLoginQr: '',
         cloudCurrentTrackIndex: 0,
         cloudNumberWidth: 0,
@@ -119,12 +119,15 @@ const store = new Vuex.Store({
         // player
         playTrack(state, track) {
             if (isLocalSourceType(state.playSource)) {
-                state.audioSource = track.path
+                state.audioSource = track.path;
             } else {
-                state.audioSource = ''
+                state.audioSource = '';
             }
-            state.trackName = track.name
-            state.trackArtist = track.artist
+            state.trackName = track.name;
+            state.trackArtist = track.artist;
+        },
+        updateAudioSource(state, source) {
+            state.audioSource = source;
         },
         updatePlayTrackInfo(state, track) {
             state.trackName = track.name
@@ -135,8 +138,8 @@ const store = new Vuex.Store({
         },
 
         // cloud
-        updateCloudLoginState(state, val) {
-            state.cloudLoginState = val;
+        updateCloudCurrentTrackIndex(state, index) {
+            state.cloudCurrentTrackIndex = index;
         },
         updateCloudTrackInfos(state, infos) {
             state.cloudTrackInfos = infos;
@@ -144,6 +147,9 @@ const store = new Vuex.Store({
         },
         updateCloudLoginQr(state, val) {
             state.cloudLoginQr = val;
+        },
+        updateCloudLoginState(state, val) {
+            state.cloudLoginState = val;
         },
 
         // display
@@ -153,36 +159,74 @@ const store = new Vuex.Store({
     },
     actions: {
         playTrack({commit, state}, index) {
-            var track = state.localTrackInfos[index];
-            commit('updateLocalCurrentTrackIndex', index);
+            if (index == -1) {
+                return;
+            }
+            var track;
+            if (isLocalSourceType(state.playSource)) {
+                track = state.localTrackInfos[index];
+                commit('updateLocalCurrentTrackIndex', index);
+            } else {
+                track = state.cloudTrackInfos[index];
+                commit('updateCloudCurrentTrackIndex', index);
+            }
             commit('playTrack', track);
         },
+
         playPrev({dispatch, state}) {
-            var localCurrentTrackIndex = state.localCurrentTrackIndex;
-            if (localCurrentTrackIndex > 0) {
-                localCurrentTrackIndex -= 1;
+            var currentIndex;
+            var total;
+            if (isLocalSourceType(state.playSource)) {
+                currentIndex = state.localCurrentTrackIndex;
+                total = state.localTrackInfos.length;
             } else {
-                localCurrentTrackIndex = state.localTrackInfos.length - 1;
+                currentIndex = state.cloudCurrentTrackIndex;
+                total = state.cloudTrackInfos.length;
             }
-            dispatch('playTrack', localCurrentTrackIndex);
+            if (currentIndex > 0) {
+                currentIndex -= 1;
+            } else {
+                currentIndex = total -1;
+            }
+            dispatch('playTrack', currentIndex);
         },
         playNext({dispatch, state}) {
-            var localCurrentTrackIndex = state.localCurrentTrackIndex;
-            if (localCurrentTrackIndex < state.localTrackInfos.length - 1) {
-                localCurrentTrackIndex += 1;
+            var currentIndex;
+            var total;
+            if (isLocalSourceType(state.playSource)) {
+                currentIndex = state.localCurrentTrackIndex;
+                total = state.localTrackInfos.length;
             } else {
-                localCurrentTrackIndex = 0;
+                currentIndex = state.cloudCurrentTrackIndex;
+                total = state.cloudTrackInfos.length;
             }
-            dispatch('playTrack', localCurrentTrackIndex);
+            if (currentIndex < total - 1) {
+                currentIndex += 1;
+            } else {
+                currentIndex = 0;
+            }
+            dispatch('playTrack', currentIndex);
         },
         playRandom({dispatch, state}) {
+            var total;
+            if (isLocalSourceType(state.playSource)) {
+                total = state.localTrackInfos.length;
+            } else {
+                total = state.cloudTrackInfos.length;
+            }
             var min = 0;
-            var max = state.localTrackInfos.length;
+            var max = total;
             var randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
             dispatch('playTrack', randomIndex);
         },
         playAgain({dispatch, state}) {
-            dispatch('playTrack', state.localCurrentTrackIndex);
+            var currentIndex;
+            if (isLocalSourceType(state.playSource)) {
+                currentIndex = state.localCurrentTrackIndex;
+            } else {
+                currentIndex = state.cloudCurrentTrackIndex;
+            }
+            dispatch('playTrack', currentIndex);
         }
     }
 })

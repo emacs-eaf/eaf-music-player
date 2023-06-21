@@ -1,7 +1,9 @@
 <template>
   <div ref="playlist" class="playlist">
-    <div class="item eaf-music-player-item" v-for="(item, index) in cloudSongInfos" :key="item.id"
-      :style="{ 'background': itemBackgroundColor(), 'color': itemForegroundColor() }">
+    <div class="item eaf-music-player-item"
+      v-for="(item, index) in cloudTrackInfos" :key="item.id"
+      @click="playItem(index)"
+      :style="{ 'background': itemBackgroundColor(index), 'color': itemForegroundColor(index) }">
       <div class="item-index">
         {{ padNumber(index + 1, cloudNumberWidth) }}
       </div>
@@ -19,44 +21,95 @@
 </template>
   
 <script>
-import { mapState } from "vuex";
+import { mapState, mapGetters } from "vuex";
 
 export default {
-  name: 'CloudPlaylist',
-  data() {
-    return {
+   name: 'CloudPlaylist',
+   data() {
+     return {
+     }
+   },
+   computed: {
+     ...mapState([
+       "cloudCurrentTrackIndex",
+       "cloudNumberWidth",
+       "cloudTrackInfos",
+       "playSource",
+     ]),
+     ...mapGetters([
+       "currentPlayTrackKey"
+     ])
+   },
+   props: {
+     backgroundColor: String,
+     foregroundColor: String,
+   },
+   watch: {
+     cloudCurrentTrackIndex: function() {
+       this.scrollToCurrentTrack();
+     }
+   },
+   mounted() {
+     this.scrollToCurrentTrack();
+   },
+   methods: {
+     playItem(index) {
+       this.$store.commit('setPlaySource', 'cloud');
+       this.$store.dispatch("playTrack", index)
+     },
 
-    }
-  },
-  computed: mapState([
-    "cloudNumberWidth",
-    "cloudSongInfos",
-  ]),
-  watch: {
-  },
-  props: {
-    backgroundColor: String,
-    foregroundColor: String,
-    pyobject: Object,
-  },
-  created() {
-  },
-  methods: {
-    padNumber(num, size) {
-      var s = num + "";
-      while (s.length < size) s = "0" + s;
-      return s;
-    },
+     padNumber(num, size) {
+       var s = num + "";
+       while (s.length < size) s = "0" + s;
+       return s;
+     },
 
-    itemBackgroundColor() {
-      return this.backgroundColor;
-    },
+     itemBackgroundColor(index) {
+       if (index == this.cloudCurrentTrackIndex) {
+         return this.foregroundColor;
+       } else {
+         return this.backgroundColor;
+       }
+     },
 
-    itemForegroundColor() {
-      return this.foregroundColor;
-    },
-  }
-}
+     itemForegroundColor(index) {
+       if (index == this.cloudCurrentTrackIndex) {
+         return this.backgroundColor;
+       } else {
+         return this.foregroundColor;
+       }
+     },
+     scrollUp() {
+       this.$refs.playlist.scrollTop += 30;
+     },
+
+     scrollDown() {
+       this.$refs.playlist.scrollTop -= 30;
+     },
+
+     scrollUpPage() {
+       this.$refs.playlist.scrollTop += this.$refs.playlist.offsetHeight;
+     },
+
+     scrollDownPage() {
+       this.$refs.playlist.scrollTop -= this.$refs.playlist.offsetHeight;
+     },
+
+     scrollToBegin() {
+       this.$refs.playlist.scrollTop = 0;
+     },
+
+     scrollToBottom() {
+       this.$refs.playlist.scrollTop = this.$refs.playlist.scrollHeight;
+     },
+
+     scrollToCurrentTrack() {
+       if (this.$refs.playlist) {
+         this.$refs.playlist.children[this.cloudCurrentTrackIndex].scrollIntoViewIfNeeded(false);
+       }
+     }
+   }
+ }
 
 </script>
   
@@ -67,6 +120,7 @@ export default {
 
   white-space: nowrap;
   text-overflow: ellipsis;
+  overflow: scroll;
 }
 
 .item {

@@ -1,19 +1,19 @@
 <template>
-    <div class="content">
-      <LocalPlaylist
-        ref="local"
-        v-show="isLocalDisplaySource"
-        :backgroundColor="backgroundColor"
-        :foregroundColor="foregroundColor">
-      </LocalPlaylist>
+  <div class="content">
+    <LocalPlaylist
+      ref="local"
+      v-if="isLocalDisplaySource"
+      :backgroundColor="backgroundColor"
+      :foregroundColor="foregroundColor">
+    </LocalPlaylist>
 
-      <CloudPanel
-        ref="cloud"
-        v-show="!isLocalDisplaySource"
-        :backgroundColor="backgroundColor"
-        :foregroundColor="foregroundColor">
-      </CloudPanel>
-    </div>
+    <CloudPanel
+      ref="cloud"
+      v-if="!isLocalDisplaySource"
+      :backgroundColor="backgroundColor"
+      :foregroundColor="foregroundColor">
+    </CloudPanel>
+  </div>
 </template>
   
 <script>
@@ -30,6 +30,13 @@
      window.sortByArtist = this.sortByArtist;
      window.sortByAlbum = this.sortByAlbum;
 
+     // scroll
+     window.scrollUp = this.scrollUp;
+     window.scrollDown = this.scrollDown;
+     window.scrollUpPage = this.scrollUpPage;
+     window.scrollDownPage = this.scrollDownPage;
+     window.scrollToBegin = this.scrollToBegin;
+     window.scrollToBottom = this.scrollToBottom;
    },
    components: {
      LocalPlaylist,
@@ -66,6 +73,54 @@
        this.$store.commit("sortTrackInfos", "album");
        window.pyobject.eval_emacs_function("message", ["Sort by album."]);
      },
+
+     scrollUp() {
+       if (this.isLocalDisplaySource) {
+         this.$refs.local.scrollUp();
+       } else {
+         this.$refs.cloud.scrollUp();
+       }
+     },
+
+     scrollDown() {
+       if (this.isLocalDisplaySource) {
+         this.$refs.local.scrollDown();
+       } else {
+         this.$refs.cloud.scrollDown();
+       }
+     },
+
+     scrollUpPage() {
+       if (this.isLocalDisplaySource) {
+         this.$refs.local.scrollUpPage();
+       } else {
+         this.$refs.cloud.scrollUpPage();
+       }
+     },
+
+     scrollDownPage() {
+       if (this.isLocalDisplaySource) {
+         this.$refs.local.scrollDownPage();
+       } else {
+         this.$refs.cloud.scrollDownPage();
+       }
+     },
+
+     scrollToBegin() {
+       if (this.isLocalDisplaySource) {
+         this.$refs.local.scrollToBegin();
+       } else {
+         this.$refs.cloud.scrollToBegin();
+       }
+     },
+
+     scrollToBottom() {
+       if (this.isLocalDisplaySource) {
+         this.$refs.local.scrollToBottom();
+       } else {
+         this.$refs.cloud.scrollToBottom();
+       }
+     }
    }
  }
 </script>

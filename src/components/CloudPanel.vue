@@ -1,10 +1,10 @@
 <template>
-    <div>
-        <CloudLogin
-          v-if="currentPanel === 'Login'">
+    <div class="cloud-panel">
+      <CloudLogin
+        v-if="!cloudLoginState">
         </CloudLogin>
         <CloudPlaylist
-          v-if="currentPanel === 'Playlist'"
+          v-if="cloudLoginState"
           ref="playlist"
           :backgroundColor="backgroundColor"
           :foregroundColor="foregroundColor">
@@ -13,7 +13,7 @@
 </template>
 
 <script>
- import { mapState } from 'vuex';
+ import { mapState } from "vuex";
  import CloudLogin from './CloudLogin.vue';
  import CloudPlaylist from './CloudPlaylist.vue';
  export default {
@@ -22,41 +22,45 @@
      CloudLogin,
      CloudPlaylist
    },
+
    data() {
      return {
-       currentPanel: ""
      }
    },
    mounted() {
-     window.cloudUpdateSongInfos = this.cloudUpdateSongInfos;
-     window.cloudUpdateLoginState = this.cloudUpdateLoginState;
-     window.cloudUpdateLoginQr = this.cloudUpdateLoginQr;
+   },
+   computed: {
+     ...mapState([
+       "cloudLoginState",
+     ]),
    },
    methods: {
-     cloudUpdateSongInfos(song_infos) {
-       this.$store.commit("updateCloudSongInfos", song_infos);
+     playItem(index) {
+       this.$refs.playlist.playItem(index);
      },
-     cloudUpdateLoginState(val) {
-       this.$store.commit("updateCloudLoginState", val);
-     },
-     cloudUpdateLoginQr(val) {
-       this.$store.commit("updateCloudLoginQr", val);
-     },
-   },
-   computed: mapState([
-     "cloudLoginState"
-   ]),
 
-   watch: {
-     cloudLoginState: {
-       // eslint-disable-next-line no-unused-vars
-       handler: function (val, oldVal) {
-         if (val) {
-           this.currentPanel = "Playlist";
-         } else {
-           this.currentPanel = "Login";
-         }
-       }
+     scrollUp() {
+       this.$refs.playlist.scrollUp();
+     },
+
+     scrollDown() {
+       this.$refs.playlist.scrollDown();
+     },
+
+     scrollUpPage() {
+       this.$refs.playlist.scrollUpPage();
+     },
+
+     scrollDownPage() {
+       this.$refs.playlist.scrollDownPage();
+     },
+
+     scrollToBegin() {
+       this.$refs.playlist.scrollToBegin();
+     },
+
+     scrollToBottom() {
+       this.$refs.playlist.scrollToBottom();
      }
    },
    props: {
@@ -66,3 +70,17 @@
  }
 
 </script>
+
+<style scoped>
+ .cloud-panel {
+   width: 100%;
+   height: 100%;
+   overflow: hidden;
+   display: flex;
+   flex-direction: column;
+   overflow: scroll;
+ }
+ ::-webkit-scrollbar {
+   display: none;
+ }
+</style>

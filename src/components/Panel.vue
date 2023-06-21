@@ -93,7 +93,10 @@
        "trackName",
        "trackArtist",
        "audioSource",
-       "playSource"
+       "playSource",
+       "displaySource",
+       "cloudCurrentTrackIndex",
+       "localCurrentTrackIndex",
      ]),
      ...mapGetters([
        "currentPlayTrackKey"
@@ -101,8 +104,6 @@
    },
    watch: {
      audioSource: function(source) {
-       window.pyobject.vue_update_current_track(this.playSource,
-                                                this.currentPlayTrackKey);
        if (source) {
          this.playIcon = "pause-circle";
          this.$refs.player.load();
@@ -111,10 +112,19 @@
          this.$refs.player.pause();
          this.playIcon = "play-circle";
        }
-       this.currentCover = "";
      },
      currentTime: function(newVal) {
        this.$emit('getCurrentTime', newVal);
+     },
+     cloudCurrentTrackIndex: function() {
+       this.currentCover = "";
+       window.pyobject.vue_update_current_track(this.playSource,
+                                                this.currentPlayTrackKey);
+     },
+     localCurrentTrackIndex: function() {
+       this.currentCover = "";
+       window.pyobject.vue_update_current_track(this.playSource,
+                                                this.currentPlayTrackKey);
      }
    },
    props: {
@@ -279,18 +289,22 @@
      },
 
      playPrev() {
+       this.$store.commit('setPlaySource', this.displaySource);
        this.$store.dispatch('playPrev');
      },
 
      playNext() {
+       this.$store.commit('setPlaySource', this.displaySource);
        this.$store.dispatch('playNext');
      },
 
      playRandom() {
+       this.$store.commit('setPlaySource', this.displaySource);
        this.$store.dispatch('playRandom');
      },
 
      playAgain() {
+       this.$store.commit('setPlaySource', this.displaySource);
        this.$store.dispatch('playAgain');
      }
    }

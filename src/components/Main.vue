@@ -21,7 +21,6 @@
     </div>
   </div>
 </template>
-
 <script>
  import ContentPanel from '@/components/ContentPanel.vue'
  import Panel from '@/components/Panel.vue'
@@ -54,6 +53,12 @@
    mounted() {
      window.initPlaylist = this.initPlaylist;
      window.changePanel = this.changePanel;
+
+     // cloud
+     window.cloudUpdateTrackInfos = this.cloudUpdateTrackInfos;
+     window.cloudUpdateLoginState = this.cloudUpdateLoginState;
+     window.cloudUpdateLoginQr = this.cloudUpdateLoginQr;
+     window.cloudUpdateTrackAudioSource = this.cloudUpdateTrackAudioSource;
    },
    methods: {
      initPlaylist(backgroundColor, foregroundColor) {
@@ -71,6 +76,22 @@
 
      getCurrentTime(time) {
        this.currentTime = time;
+     },
+
+     cloudUpdateTrackInfos(track_infos) {
+       this.$store.commit("updateCloudTrackInfos", track_infos);
+     },
+
+     cloudUpdateLoginQr(val) {
+       this.$store.commit("updateCloudLoginQr", val);
+     },
+
+     cloudUpdateLoginState(val) {
+       this.$store.commit("updateCloudLoginState", val);
+     },
+
+     cloudUpdateTrackAudioSource(val) {
+       this.$store.commit("updateAudioSource", val);
      }
    }
  }

@@ -40,9 +40,11 @@
        "localCurrentTrackIndex",
        "localNumberWidth",
        "localTrackInfos",
+       "playSource"
      ]),
      ...mapGetters([
-       "localCurrentTrackPath"
+       "localCurrentTrackPath",
+       "currentPlayTrackKey"
      ])
    },
    props: {
@@ -56,14 +58,10 @@
    },
    mounted() {
      window.addLocalTrackInfos = this.addLocalTrackInfos;
-     window.scrollUp = this.scrollUp;
-     window.scrollDown = this.scrollDown;
-     window.scrollUpPage = this.scrollUpPage;
-     window.scrollDownPage = this.scrollDownPage;
-     window.scrollToBegin = this.scrollToBegin;
-     window.scrollToBottom = this.scrollToBottom;
      window.jumpToFile = this.jumpToFile;
      window.updateTagInfo = this.updateTagInfo;
+
+     this.scrollToCurrentTrack();
    },
    created() {
    },
@@ -133,7 +131,9 @@
      },
 
      scrollToCurrentTrack() {
-       this.$refs.playlist.children[this.localCurrentTrackIndex].scrollIntoViewIfNeeded(false);
+       if (this.$refs.playlist) {
+         this.$refs.playlist.children[this.localCurrentTrackIndex].scrollIntoViewIfNeeded(false);
+       }
      }
    }
  }

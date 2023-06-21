@@ -95,6 +95,8 @@ class NeteaseMusicApi(BaseProvider):
         self._session = requests.session()
         self._session.headers['User-Agent'] = USER_AGENT
         self._session.headers['Referer'] = 'https://music.163.com'
+        self._session.headers['X-Real-IP'] = '27.18.2.122'
+        self._session.headers['X-Forwarded-For'] = '27.18.2.122'
 
         # load cookies
         self._unikey = ''

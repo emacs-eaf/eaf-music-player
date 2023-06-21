@@ -43,6 +43,8 @@ except ImportError:
 sys.path.append(os.path.dirname(__file__))
 from music_service import music_service
 from music_service.utils import get_logger
+from netease_backend import NeteaseBackend
+
 
 log = get_logger('AppBuffer')
 
@@ -80,6 +82,9 @@ class AppBuffer(BrowserBuffer):
         self.init_icons()
         self.change_title(get_emacs_var("eaf-music-player-buffer"))
         self.load_index_html(__file__)
+
+        # netease backend
+        self._netease_backend = NeteaseBackend(self)
 
     def init_icons(self):
         # Change svg file color on Python side, it's hard to change svg color on JavaScript.
@@ -129,6 +134,8 @@ class AppBuffer(BrowserBuffer):
         self.local_tracks = {x['path']:x for x in track_list}
         self.buffer_widget.eval_js_function('addLocalTrackInfos', track_list)
 
+        self._netease_backend.init_app()
+
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
 
@@ -137,6 +144,10 @@ class AppBuffer(BrowserBuffer):
         log.debug(f'start play source: {play_source}, key: {play_track_key}')
         self.play_source = play_source
         self.play_track_key = play_track_key
+
+        if not self.is_local_source():
+            self._netease_backend.fetch_track_audio_source(self.play_track_key,
+                                                           self.get_current_track_unikey())
 
         track_infos = self.get_current_play_track_info()
         self.fetch_cover(track_infos)
@@ -154,7 +165,10 @@ class AppBuffer(BrowserBuffer):
 
     def get_current_play_track_info(self):
         track_unikey = self.get_current_track_unikey()
-        infos = self.local_tracks[self.play_track_key]
+        if self.is_local_source():
+            infos = self.local_tracks[self.play_track_key]
+        else:
+            infos = self._netease_backend.get_track_info(self.play_track_key)
         infos['unikey'] = track_unikey
         return infos
 
