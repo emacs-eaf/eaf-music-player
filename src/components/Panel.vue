@@ -427,11 +427,15 @@
    display: flex;
    flex-direction: row;
    align-items: center;
+
+   padding-left: 20px;
+   padding-right: 20px;
  }
 
  .coverBox {
    width: 60px;
-   margin-left: 30px;
+   margin: 0;
+   margin-right: 20px;
  }
  
  .cover {
@@ -441,24 +445,24 @@
  .info {
    width: 30%;
    user-select: none;
-   padding-left: 30px;
-
    overflow: hidden;
    white-space: nowrap;
    text-overflow: ellipsis;
+   margin: 0;
  }
 
  .control {
    display: flex;
    flex-direction: row;
    align-items: center;
-   width: 40%;
    justify-content: center;
  }
 
  .visual {
+   height: 100%;
+   margin: 0;
+   margin-left: 20px;
    width: 30%;
-   padding-right: 20px;
  }
 
  .backward {
