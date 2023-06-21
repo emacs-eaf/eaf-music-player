@@ -203,10 +203,11 @@ class NeteaseBackend:
                 try:
                     song_id, mp3_name = task
                     url = self._api.get_exhigh_song_url(song_id)
-                    temp_file = utils.get_temp_cache_file(mp3_name)
-                    if utils.download_file(url, temp_file):
-                        mp3_file = self.get_music_cache_file(mp3_name)
-                        shutil.move(temp_file, mp3_file)
+                    if url != "":
+                        temp_file = utils.get_temp_cache_file(mp3_name)
+                        if utils.download_file(url, temp_file):
+                            mp3_file = self.get_music_cache_file(mp3_name)
+                            shutil.move(temp_file, mp3_file)
                 except Exception as e:
                     logger.exception(f'cache mp3 task, failed: {e}')
             time.sleep(2)

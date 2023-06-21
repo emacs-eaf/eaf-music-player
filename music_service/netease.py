@@ -278,8 +278,11 @@ class NeteaseMusicApi(BaseProvider):
 
     def get_exhigh_song_url(self, song_id: int) -> str:
         result = self.api_song_url_v1(song_id, 'exhigh')
-        url = result['data'][0].get('url', '')
-        return url
+        if result:
+            url = result['data'][0].get('url', '')
+            return url
+        else:
+            return ""
 
     def api_login_qr_key(self):
         url = 'https://music.163.com/weapi/login/qrcode/unikey'
