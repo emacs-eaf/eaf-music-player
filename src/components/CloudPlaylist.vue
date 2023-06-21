@@ -19,11 +19,11 @@
     </div>
   </div>
 </template>
-  
-<script>
-import { mapState, mapGetters } from "vuex";
 
-export default {
+<script>
+ import { mapState, mapGetters } from "vuex";
+
+ export default {
    name: 'CloudPlaylist',
    data() {
      return {
@@ -47,6 +47,15 @@ export default {
    watch: {
      cloudCurrentTrackIndex: function() {
        this.scrollToCurrentTrack();
+     },
+     cloudTrackInfos: {
+       // eslint-disable-next-line no-unused-vars
+       handler: function(val, oldVal) {
+         /* Play music when first time load cloud list. */
+         if (oldVal.length === 0 && val.length > 0) {
+           this.playItem(0);
+         }
+       }
      }
    },
    mounted() {
@@ -112,49 +121,49 @@ export default {
  }
 
 </script>
-  
+
 <style scoped>
-.playlist {
-  width: 100%;
-  height: 100%;
+ .playlist {
+   width: 100%;
+   height: 100%;
 
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: scroll;
-}
+   white-space: nowrap;
+   text-overflow: ellipsis;
+   overflow: scroll;
+ }
 
-.item {
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-top: 5px;
-  padding-bottom: 5px;
+ .item {
+   padding-left: 20px;
+   padding-right: 20px;
+   padding-top: 5px;
+   padding-bottom: 5px;
 
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+   display: flex;
+   flex-direction: row;
+   align-items: center;
 
-  user-select: none;
-}
+   user-select: none;
+ }
 
-.item-index {
-  margin-right: 10px;
-}
+ .item-index {
+   margin-right: 10px;
+ }
 
-.item-name {
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  width: 40%;
-}
+ .item-name {
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
+   width: 40%;
+ }
 
-.item-artist {
-  width: 20%;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
+ .item-artist {
+   width: 20%;
+   overflow: hidden;
+   white-space: nowrap;
+   text-overflow: ellipsis;
+ }
 
-.item-album {
-  width: 30%;
-}
+ .item-album {
+   width: 30%;
+ }
 </style>

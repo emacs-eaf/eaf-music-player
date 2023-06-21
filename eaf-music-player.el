@@ -145,6 +145,10 @@
    "music-player"
    ))
 
+(defun eaf-open-cloud-music ()
+  (interactive)
+  (eaf-open "cloud" "music-player"))
+
 (cl-defmacro with-eaf-music-player (&rest body)
   "Eval code in EAF music player buffer."
   (declare (indent 0))

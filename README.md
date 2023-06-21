@@ -15,6 +15,11 @@ Music Player application for the [Emacs Application Framework](https://github.co
 (require 'eaf-music-player)
 ```
 
+### Usage
+
+* `eaf-open-music-player`: Open EAF music player with local directory.
+* `eaf-open-cloud-music`: Open EAF music player with Netease favorite list, only for Chinese user.
+
 ### Dependency List
 
 | Package                     | Description            |

@@ -105,6 +105,7 @@ class AppBuffer(BrowserBuffer):
     def init_vars(self):
         self.buffer_widget.eval_js_function(
             '''initPlaylist''',
+            self.url,
             self.theme_background_color,
             self.theme_foreground_color)
 
