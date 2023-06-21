@@ -427,14 +427,12 @@
    display: flex;
    flex-direction: row;
    align-items: center;
-
-   padding-left: 20px;
-   padding-right: 20px;
  }
 
  .coverBox {
    width: 60px;
    margin: 0;
+   margin-left: 20px;
    margin-right: 20px;
  }
  
@@ -462,6 +460,7 @@
    height: 100%;
    margin: 0;
    margin-left: 20px;
+   margin-right: 20px;
    width: 30%;
  }
 
