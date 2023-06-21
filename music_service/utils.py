@@ -2,23 +2,12 @@ import logging
 import os.path
 
 import requests
+from urllib3.exceptions import NameResolutionError
+from requests.exceptions import ConnectionError, SSLError
+
 
 USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 ' \
              '(KHTML, like Gecko) Chrome/86.0.4240.30 Safari/537.36'
-
-
-def download_file(url, filename) -> bool:
-    url = url.strip()
-    try:
-        response = requests.get(url, stream=True)
-        with open(filename, 'wb') as file:
-            for chunk in response.iter_content(chunk_size=4096):
-                if chunk:
-                    file.write(chunk)
-    except Exception as e:
-        print(f'download url: {url}, error: {e}')
-    return os.path.exists(filename)
-
 
 def get_logger(name: str) -> logging.Logger:
     log_formatter = logging.Formatter(
@@ -35,6 +24,33 @@ def get_logger(name: str) -> logging.Logger:
     console_handler.setFormatter(log_formatter)
     logger.addHandler(console_handler)
     return logger
+
+
+logger = get_logger('Utils')
+
+
+def _download_file(url, filename) -> bool:
+    if not url:
+        return False
+    url = url.strip()
+    response = requests.get(url, stream=True)
+    with open(filename, 'wb') as file:
+        for chunk in response.iter_content(chunk_size=4096):
+            if chunk:
+                file.write(chunk)
+    return os.path.exists(filename)
+
+
+def download_file(url, filename) -> bool:
+    for i in range(3):
+        try:
+            return _download_file(url, filename)
+        except (NameResolutionError, ConnectionError, SSLError):
+            continue
+        except Exception as e:
+            logger.exception(f'[eaf-music-player] download file error: {e}')
+            return False
+
 
 def get_cloud_cache_dir():
     cache_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'src', 'cloud_cache')
