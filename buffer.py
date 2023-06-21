@@ -41,13 +41,10 @@ except ImportError:
     EasyID3 = None
 
 sys.path.append(os.path.dirname(__file__))
-from music_service import music_service
-from music_service.utils import get_logger
 from netease_backend import NeteaseBackend
 
-
-# os.environ['QTWEBENGINE_CHROMIUM_FLAGS'] = '--disable-web-security'
-
+from music_service import music_service
+from music_service.utils import get_logger
 
 log = get_logger('AppBuffer')
 
