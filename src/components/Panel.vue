@@ -462,6 +462,7 @@
    margin-left: 20px;
    margin-right: 20px;
    width: 30%;
+   height: 100%;
  }
 
  .backward {
