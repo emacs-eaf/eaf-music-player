@@ -10,6 +10,7 @@
   "dependencies": {
     "audiomotion-analyzer": "^4.0.0",
     "core-js": "^3.16.1",
+    "qrcode": "^1.5.3",
     "qwebchannel": "^5.9.0",
     "vue": "^2.6.14",
     "vuex": "^3.6.2"

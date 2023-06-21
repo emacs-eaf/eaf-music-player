@@ -1,16 +1,13 @@
 <template>
   <div id="page">
     <div class="content">
-      <Playlist
-        ref="playlist"
-        v-if="currentPanel === 'Playlist'"
-        class="playlist"
+      <ContentPanel
+        v-if="currentPanel === 'ContentPanel'"
         :backgroundColor="backgroundColor"
         :foregroundColor="foregroundColor"
-        :pyobject="pyobject"
         :style="{ 'margin-bottom': panelHeight }">
-      </Playlist>
-      <LyricPanel 
+      </ContentPanel>
+      <LyricPanel
         v-if="currentPanel === 'LyricPanel'"
         class="lyric-panel"
         :currentTime="currentTime"
@@ -19,29 +16,27 @@
       </LyricPanel>
       <Panel
         @getCurrentTime="getCurrentTime"
-        :pyobject="pyobject"
         :style="{ 'height': panelHeight }">
       </Panel>
     </div>
   </div>
 </template>
-
 <script>
- import Playlist from '@/components/Playlist.vue'
+ import ContentPanel from '@/components/ContentPanel.vue'
  import Panel from '@/components/Panel.vue'
  import LyricPanel from '@/components/LyricPanel.vue'
  import { QWebChannel } from "qwebchannel";
  export default {
    name: 'App',
    components: {
-     Playlist,
+     ContentPanel,
      Panel,
      LyricPanel
    },
    data() {
      return {
        panelHeight: "90px",
-       currentPanel: "Playlist",
+       currentPanel: "ContentPanel",
        currentTime: "",
        backgroundColor: "",
        foregroundColor: "",
@@ -58,11 +53,6 @@
    mounted() {
      window.initPlaylist = this.initPlaylist;
      window.changePanel = this.changePanel;
-
-     this.$root.$on("currentTrackVisibleInPlayList", this.currentTrackVisibleInPlayList);
-   },
-   beforeDestroy() {
-     this.$root.off("currentTrackVisibleInPlayList");
    },
    methods: {
      initPlaylist(backgroundColor, foregroundColor) {
@@ -71,25 +61,15 @@
      },
 
      changePanel() {
-       if (this.currentPanel === "Playlist") {
+       if (this.currentPanel === "ContentPanel") {
          this.currentPanel = "LyricPanel";
        } else {
-         this.currentPanel = "Playlist";
-
-         this.$root.$emit("currentTrackVisibleInPlayList");
+         this.currentPanel = "ContentPanel";
        }
      },
 
      getCurrentTime(time) {
        this.currentTime = time;
-     },
-
-     currentTrackVisibleInPlayList() {
-       this.$nextTick(function() {
-         if (this.$refs.playlist) {
-           this.$refs.playlist.scrollToCurrentTrack();
-         }
-         })
      }
    }
  }
@@ -114,8 +94,5 @@
  }
  ::-webkit-scrollbar {
    display: none;
- }
- .playlist {
-   overflow: scroll;
  }
 </style>

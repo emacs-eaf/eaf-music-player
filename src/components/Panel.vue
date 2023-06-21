@@ -12,10 +12,10 @@
       class="info"
       :style="{ 'color': foregroundColor }">
       <div>
-        {{ name }}
+        {{ trackName }}
       </div>
       <div>
-        {{ artist }}
+        {{ trackArtist }}
       </div>
     </div>
     <div
@@ -55,7 +55,7 @@
     </div>
     <div class="visual">
       <audio id="audio" ref="player">
-        <source :src="currentTrack">
+        <source :src="audioSource">
       </audio>
       <div id="audio-visual">
       </div>
@@ -64,21 +64,20 @@
 </template>
 
 <script>
- import { mapState } from "vuex";
+ import { mapState, mapGetters } from "vuex";
  import AudioMotionAnalyzer from 'audiomotion-analyzer';
 
  export default {
    name: 'Panel',
    data() {
      return {
+       audioSource: "",
        currentTime: "",
        currentCover: "",
        iconCacheDir: "",
        coverCacheDir: "",
        pathSep: "",
        duration: "",
-       name: "",
-       artist: "",
        backgroundColor: "",
        foregroundColor: "",
        /* Download icon from https://www.iconfont.cn/collections/detail?spm=a313x.7781069.0.da5a778a4&cid=18739 */
@@ -90,35 +89,52 @@
        audioMotion: Object,
      }
    },
-   computed: mapState([
-     "currentTrack",
-     "currentTrackIndex",
-     "fileInfos"
-   ]),
+   computed: {
+     ...mapState([
+       "trackName",
+       "trackArtist",
+       "playSource",
+       "displaySource",
+       "localCurrentTrackIndex",
+       "localTrackInfos",
+       "cloudCurrentTrackIndex",
+       "cloudTrackInfos",
+     ]),
+     ...mapGetters([
+       "currentPlayTrackKey",
+       "isLocalPlaySource",
+     ])
+   },
    watch: {
-     "fileInfos": function() {
+     localTrackInfos: function() {
        if (this.playOrderIcon === "random") {
          this.playRandom();
        } else {
          if (this.$refs.player.paused) {
-           this.playItem(this.fileInfos[this.currentTrackIndex]);
+           this.playTrack(this.localCurrentTrackIndex);
          }
        }
      },
-     
      currentTime: function(newVal) {
        this.$emit('getCurrentTime', newVal);
      }
-   },
-   props: {
    },
    mounted() {
      window.initPanel = this.initPanel;
      window.forward = this.forward;
      window.backward = this.backward;
-     window.playNext = this.playNext;
-     window.playPrev = this.playPrev;
-     window.playRandom = this.playRandom;
+     window.playNext = () => {
+       this.$store.commit('setPlaySource', this.displaySource);
+       this.playNext();
+     };
+     window.playPrev = () => {
+       this.$store.commit('setPlaySource', this.displaySource);
+       this.playPrev();
+     };
+     window.playRandom = () => {
+       this.$store.commit('setPlaySource', this.displaySource);
+       this.playRandom();
+     };
      window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
      window.updateCover = this.updateCover;
@@ -126,42 +142,30 @@
      window.updateLyricColor = this.updateLyricColor;
      window.setAudioMotion = this.setAudioMotion;
 
-     this.audioMotion =  new AudioMotionAnalyzer(
+     // cloud
+     window.cloudUpdateTrackInfos = this.cloudUpdateTrackInfos;
+     window.cloudUpdateLoginState = this.cloudUpdateLoginState;
+     window.cloudUpdateLoginQr = this.cloudUpdateLoginQr;
+     window.cloudUpdateTrackAudioSource = this.cloudUpdateTrackAudioSource;
+
+     this.audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
        {
          source: document.getElementById('audio')
-       })     
-     
+       }
+     )
+
+     this.$root.$on("playTrack", this.playTrack);
      let that = this;
-
-     this.$root.$on("playItem", this.playItem);
-
-     this.$root.$on("updatePanelInfo", this.updatePanelInfo);
-
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
-
      this.$refs.player.addEventListener('timeupdate', () => {
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
+
    },
    methods: {
-     playItem(item) {
-       this.$store.commit("updateCurrentTrack", item.path);
-
-       this.playIcon = "pause-circle";
-
-       this.name = item.name;
-       this.artist = item.artist;
-
-       this.$refs.player.load();
-       this.$refs.player.play();
-
-       this.currentCover = "";
-     },
-
      updateCover(url) {
-       console.log(url);
        var dynamicallyId = new Date();
        var src = url + "?cache=" + dynamicallyId;
        this.currentCover = src;
@@ -196,11 +200,6 @@
          newLyric.push(newLine);
        })
        this.$store.commit("updateLyric", newLyric);
-     },
-
-     updatePanelInfo(name, artist) {
-       this.name = name;
-       this.artist = artist;
      },
 
      setAudioMotion(colorList) {
@@ -255,9 +254,7 @@
        this.coverCacheDir = coverCacheDir;
        this.pathSep = pathSep;
        this.currentCover = defaultCoverPath;
-
        this.iconKey = new Date();
-       
        this.setAudioMotion([this.foregroundColor]);
      },
      
@@ -299,40 +296,120 @@
        }
      },
 
-     playPrev() {
-       var currentTrackIndex = this.currentTrackIndex;
-
-       if (currentTrackIndex > 0) {
-         currentTrackIndex -= 1;
+     // player
+     playAudioSource(source) {
+       if (source) {
+         this.audioSource = source;
+         this.playIcon = "pause-circle";
+         this.$refs.player.load();
+         var playPromise = this.$refs.player.play();
+         if (playPromise !== undefined) {
+           // eslint-disable-next-line no-unused-vars
+           playPromise.then(_ => {}).catch(error => {
+             console.log(error);
+           });
+         }
        } else {
-         currentTrackIndex = this.fileInfos.length - 1;
+         this.$refs.player.pause();
+         this.playIcon = "play-circle";
        }
+     },
+     
+     playTrack(index) {
+       var track;
+       if (this.isLocalPlaySource) {
+         track = this.localTrackInfos[index];
+         this.$store.commit('updateLocalCurrentTrackIndex', index);
+       } else {
+         track = this.cloudTrackInfos[index];
+         this.$store.commit('updateCloudCurrentTrackIndex', index);
+       }
+       this.$store.commit('updatePlayTrackInfo', track);
 
-       this.playItem(this.fileInfos[currentTrackIndex]);
+       this.currentCover = "";
+       window.pyobject.vue_update_current_track(this.playSource,
+                                                this.currentPlayTrackKey);
+       this.playAudioSource(track.path);
+
+     },
+
+     playPrev() {
+       var currentIndex;
+       var total;
+       if (this.isLocalPlaySource) {
+         currentIndex = this.localCurrentTrackIndex;
+         total = this.localTrackInfos.length;
+       } else {
+         currentIndex = this.cloudCurrentTrackIndex;
+         total = this.cloudTrackInfos.length;
+       }
+       if (currentIndex > 0) {
+         currentIndex -= 1;
+       } else {
+         currentIndex = total -1;
+       }
+       this.playTrack(currentIndex);
      },
 
      playNext() {
-       var currentTrackIndex = this.currentTrackIndex;
-
-       if (currentTrackIndex < this.fileInfos.length - 1) {
-         currentTrackIndex += 1;
+       var currentIndex;
+       var total;
+       if (this.isLocalPlaySource) {
+         currentIndex = this.localCurrentTrackIndex;
+         total = this.localTrackInfos.length;
        } else {
-         currentTrackIndex = 0;
+         currentIndex = this.cloudCurrentTrackIndex;
+         total = this.cloudTrackInfos.length;
        }
-
-       this.playItem(this.fileInfos[currentTrackIndex]);
+       if (currentIndex < total - 1) {
+         currentIndex += 1;
+       } else {
+         currentIndex = 0;
+       }
+       this.playTrack(currentIndex);
      },
 
      playRandom() {
+       var total;
+       if (this.isLocalPlaySource) {
+         total = this.localTrackInfos.length;
+       } else {
+         total = this.cloudTrackInfos.length;
+       }
        var min = 0;
-       var max = this.fileInfos.length;
+       var max = total;
        var randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
-
-       this.playItem(this.fileInfos[randomIndex]);
+       this.playTrack(randomIndex);
      },
 
      playAgain() {
-       this.playItem(this.fileInfos[this.currentTrackIndex]);
+       var currentIndex;
+       if (this.isLocalPlaySource) {
+         currentIndex = this.localCurrentTrackIndex;
+       } else {
+         currentIndex = this.cloudCurrentTrackIndex;
+       }
+       this.playTrack(currentIndex);
+     },
+
+     cloudUpdateTrackInfos(track_infos) {
+       this.$store.commit("updateCloudTrackInfos", track_infos);
+     },
+
+     cloudUpdateLoginQr(val) {
+       this.$store.commit("updateCloudLoginQr", val.qrcode);
+     },
+
+     cloudUpdateLoginState(val) {
+       this.$store.commit("updateCloudLoginState", val);
+     },
+
+     cloudUpdateTrackAudioSource(val) {
+       if (val) {
+         this.playAudioSource(val);
+       } else {
+         this.playNext();
+       }
      }
    }
  }

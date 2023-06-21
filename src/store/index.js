@@ -5,39 +5,81 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state: {
-        currentTrack: "",
-        currentTrackIndex: 0,
-        numberWidth: 0,
-        fileInfos: [],
+        // local
+        localCurrentTrackIndex: 0,
+        localNumberWidth: 0,
+        localTrackInfos: [],
+
+        // lyric
         currentLyric: "",
         currentCover: "",
-        lyricColor: "#CCCCCC"
+        lyricColor: "#CCCCCC",
+
+        // player
+        trackName: "",
+        trackArtist: "",
+        playSource: 'local',
+
+        // cloud
+        cloudLoginState: true,
+        cloudLoginQr: '',
+        cloudCurrentTrackIndex: -1,
+        cloudNumberWidth: 0,
+        cloudTrackInfos: [],
+
+        // display
+        displaySource: 'local',
     },
     getters: {
-        currentTrack: state => {
-            return state.currentTrack;
+        localCurrentTrackPath: state => {
+            var track = state.localTrackInfos[state.localCurrentTrackIndex];
+            return track.path;
         },
-        currentTrackIndex: state => {
-            return state.currentTrackIndex;
+        currentPlayTrackKey: state => {
+            if (isLocalSourceType(state.playSource)) {
+                return state.localTrackInfos[state.localCurrentTrackIndex].path;
+            } else {
+                return state.cloudTrackInfos[state.cloudCurrentTrackIndex].id;
+            }
         },
-        fileInfos: state => {
-            return state.fileInfos;
+        isLocalPlaySource: state => {
+            return isLocalSourceType(state.playSource);
+        },
+        isLocalDisplaySource: state => {
+            return isLocalSourceType(state.displaySource);
         }
     },
     mutations: {
-        updateCurrentTrack(state, track) {
-            state.currentTrack = track;
+        // local
+        updateLocalCurrentTrackIndex(state, index) {
+            state.localCurrentTrackIndex = index;
+        },
+        updateLocalTrackInfos(state, infos) {
+            state.localTrackInfos = infos;
+            state.localNumberWidth = state.localTrackInfos.length.toString().length;
+        },
+        updateLocalTrackTagInfo(state, payload) {
+            var tracks = state.localTrackInfos.map(function (track) { return track.path });
+            var index = tracks.indexOf(payload.track);
 
-            var tracks = state.fileInfos.map(function (track) { return track.path });
-            state.currentTrackIndex = tracks.indexOf(state.currentTrack);
+            state.localTrackInfos[index].name = payload.name;
+            state.localTrackInfos[index].artist = payload.artist;
+            state.localTrackInfos[index].album = payload.album;
         },
-        updateFileInfos(state, infos) {
-            state.fileInfos = infos;
-            state.numberWidth = state.fileInfos.length.toString().length;
-        },
-        changeSort(state, compareType) {
-            var currentSong = state.fileInfos[state.currentTrackIndex];
-            state.fileInfos.sort(function (a, b) {
+
+        // sort
+        sortTrackInfos(state, compareType) {
+            var isLocal = isLocalSourceType(state.displaySource)
+            var trackInfos = null;
+            var currentTrack = null;
+            if (isLocal) {
+                currentTrack = state.localTrackInfos[state.localCurrentTrackIndex];
+                trackInfos = state.localTrackInfos;
+            } else {
+                currentTrack = state.cloudTrackInfos[state.cloudCurrentTrackIndex];
+                trackInfos = state.cloudTrackInfos;
+            }
+            trackInfos.sort(function (a, b) {
                 var compareA, compareB;
                 if (compareType === "title") {
                     compareA = a.name;
@@ -51,16 +93,17 @@ const store = new Vuex.Store({
                 }
                 return charCompare(compareA, compareB);
             });
-            state.currentTrackIndex = state.fileInfos.indexOf(currentSong);
-        },
-        updateTrackTagInfo(state, payload) {
-            var tracks = state.fileInfos.map(function (track) { return track.path });
-            var index = tracks.indexOf(payload.track);
 
-            state.fileInfos[index].name = payload.name;
-            state.fileInfos[index].artist = payload.artist;
-            state.fileInfos[index].album = payload.album;
+            if (isLocal) {
+                state.localTrackInfos = trackInfos;
+                state.localCurrentTrackIndex = trackInfos.indexOf(currentTrack);
+            } else {
+                state.cloudTrackInfos = trackInfos;
+                state.cloudCurrentTrackIndex = trackInfos.indexOf(currentTrack);
+            }
         },
+
+        // lyric and cover
         updateLyric(state, lyric) {
             state.currentLyric = lyric;
         },
@@ -69,10 +112,52 @@ const store = new Vuex.Store({
         },
         updateLyricColor(state, color) {
             state.lyricColor = color;
-        }
-    },
+        },
 
+        // player
+        updatePlayTrackInfo(state, track) {
+            state.trackName = track.name
+            state.trackArtist = track.artist
+        },
+        setPlaySource(state, sourceType) {
+            state.playSource = sourceType
+        },
+
+        // cloud
+        updateCloudCurrentTrackIndex(state, index) {
+            state.cloudCurrentTrackIndex = index;
+        },
+        updateCloudTrackInfos(state, infos) {
+            var currentTrack;
+            if (state.cloudTrackInfos.length > 0) {
+                currentTrack = state.cloudTrackInfos[state.cloudCurrentTrackIndex];
+            }
+            state.cloudTrackInfos = infos;
+            state.cloudNumberWidth = state.cloudTrackInfos.length.toString().length;
+
+            if (currentTrack) {
+                var currentIndex = infos.indexOf(currentTrack);
+                if (currentIndex) {
+                    state.cloudCurrentTrackIndex = currentTrack;
+                } else {
+                    state.cloudCurrentTrackIndex = 0;
+                }
+            }
+        },
+        updateCloudLoginQr(state, val) {
+            state.cloudLoginQr = val;
+        },
+        updateCloudLoginState(state, val) {
+            state.cloudLoginState = val;
+        },
+
+        // display
+        updateDisplaySource(state, val) {
+            state.displaySource = val;
+        }
+    }
 })
+
 function charCompare(charA, charB) {
     if (charA === undefined || charA === null || charA === '' || charA === ' ' || charA === '　') {
         return -1;
@@ -96,6 +181,10 @@ function charCompare(charA, charB) {
 function notChinese(char) {
     const charCode = char.charCodeAt(0);
     return 0 <= charCode && charCode <= 128;
+}
+
+function isLocalSourceType(source) {
+    return source === 'local'
 }
 
 export default store

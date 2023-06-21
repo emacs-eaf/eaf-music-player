@@ -41,19 +41,26 @@ except ImportError:
     EasyID3 = None
 
 sys.path.append(os.path.dirname(__file__))
+from netease_backend import NeteaseBackend
+
 from music_service import music_service
 from music_service.utils import get_logger
 
 log = get_logger('AppBuffer')
+
+class PlaySourceType:
+    Local = 'local'
+    Cloud = 'cloud'
 
 
 class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
-        self.vue_current_track = ""
+        self.play_source = PlaySourceType.Local
+        self.play_track_key = ''
 
-        self.music_infos = []
+        self.local_tracks = {}
         self.thread_queue = []
 
         self.first_file = os.path.expanduser(url)
@@ -73,10 +80,11 @@ class AppBuffer(BrowserBuffer):
             os.makedirs(self.icon_cache_dir)
 
         self.init_icons()
-
         self.change_title(get_emacs_var("eaf-music-player-buffer"))
-
         self.load_index_html(__file__)
+
+        # netease backend
+        self._netease_backend = NeteaseBackend(self)
 
     def init_icons(self):
         # Change svg file color on Python side, it's hard to change svg color on JavaScript.
@@ -122,27 +130,53 @@ class AppBuffer(BrowserBuffer):
         elif os.path.isfile(self.first_file):
             files.append(self.first_file)
 
-        self.music_infos = self.pick_music_info(files)
+        track_list = self.pick_music_info(files)
+        self.local_tracks = {x['path']:x for x in track_list}
+        self.buffer_widget.eval_js_function('addLocalTrackInfos', track_list)
 
-        self.buffer_widget.eval_js_function('''addFiles''', self.music_infos)
+        self._netease_backend.init_app()
 
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
 
-    @QtCore.pyqtSlot(str)
-    def vue_update_current_track(self, current_track):
-        self.vue_current_track = current_track
+    @QtCore.pyqtSlot(str, str)
+    def vue_update_current_track(self, play_source, play_track_key):
+        log.debug(f'start play source: {play_source}, key: {play_track_key}')
+        self.play_source = play_source
+        self.play_track_key = play_track_key
 
-        self.fetch_cover(current_track)
-        self.fetch_lyric(current_track)
+        if not self.is_local_source():
+            self._netease_backend.fetch_track_audio_source(self.play_track_key,
+                                                           self.get_current_track_unikey())
 
+        track_infos = self.get_current_play_track_info()
+        self.fetch_cover(track_infos)
+        self.fetch_lyric(track_infos)
+
+    def get_current_track_unikey(self):
+        return f'{self.play_source}_{self.play_track_key}'
+
+    def is_current_play_track(self, track_unikey: str) -> bool:
+        current_track_unikey = self.get_current_track_unikey()
+        return current_track_unikey == track_unikey
+
+    def is_local_source(self):
+        return self.play_source == PlaySourceType.Local
+
+    def get_current_play_track_info(self):
+        track_unikey = self.get_current_track_unikey()
+        if self.is_local_source():
+            infos = self.local_tracks[self.play_track_key]
+        else:
+            infos = self._netease_backend.get_track_info(self.play_track_key)
+        infos['unikey'] = track_unikey
+        return infos
 
     def _get_tag_value(self, tags, key: str) -> str:
         values = tags.get(key, None)
         if not values:
             return ''
         return values[0]
-
 
     def get_audio_taginfos(self, file_path: str) -> dict:
         tags = taglib.File(file_path).tags
@@ -168,53 +202,52 @@ class AppBuffer(BrowserBuffer):
             'album': self._get_tag_value(tags, album_key)
         }
 
-
-    def fetch_cover(self, current_track):
-        tags = self.get_audio_taginfos(current_track)
-        artist = tags['artist']
-        title = tags['title']
-        album = tags['album']
+    def fetch_cover(self, infos):
+        artist = infos['artist']
+        title = infos['name']
+        album = infos['album']
+        unikey = infos['unikey']
         cover_path = get_cover_path(self.cover_cache_dir, artist, title)
 
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
             self.buffer_widget.eval_js_function("updateLyricColor", "#CCCCCC")
-            fetch_cover_thread = FetchCover(current_track, self.cover_cache_dir, artist, title, album)
+            fetch_cover_thread = FetchCover(unikey, self.cover_cache_dir, artist, title, album)
             fetch_cover_thread.fetch_result.connect(self.update_cover)
             fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
             self.thread_queue.append(fetch_cover_thread)
             fetch_cover_thread.start()
         else:
-            self.update_cover(current_track, cover_path)
+            self.update_cover(unikey, cover_path)
 
-    def fetch_lyric(self, current_track):
+    def fetch_lyric(self, infos):
         self.buffer_widget.eval_js_function("updateLyric", "")
 
-        tags = self.get_audio_taginfos(current_track)
-        title = tags['title']
-        artist = tags['artist']
-        album = tags['album']
+        title = infos['name']
+        artist = infos['artist']
+        album = infos['album']
+        unikey = infos['unikey']
         lyric_path = get_lyric_path(self.lyrics_cache_dir, artist, title)
 
         if os.path.exists(lyric_path):
             with open(lyric_path, "r") as f:
-                self.update_lyric(current_track, f.read())
+                self.update_lyric(unikey, f.read())
         else:
-            self.update_lyric(current_track, '[99:00.000]正在搜索歌词，请稍等')
-            fetch_lyric_thread = FetchLyric(current_track, self.lyrics_cache_dir, title, artist, album)
+            self.update_lyric(unikey, '[99:00.000]正在搜索歌词，请稍等')
+            fetch_lyric_thread = FetchLyric(unikey, self.lyrics_cache_dir, title, artist, album)
             fetch_lyric_thread.fetch_result.connect(self.update_lyric)
             self.thread_queue.append(fetch_lyric_thread)
             fetch_lyric_thread.start()
 
-    def update_lyric(self, track, lyric):
+    def update_lyric(self, track_unikey, lyric):
         # Only update lyric when
-        if track == self.vue_current_track:
+        if self.is_current_play_track(track_unikey):
             self.buffer_widget.eval_js_function("updateLyric", string_to_base64(lyric))
 
-    def update_cover(self, track, url):
+    def update_cover(self, track_unikey, url):
         # Only update cover when
-        if track == self.vue_current_track:
+        if self.is_current_play_track(track_unikey):
             self.buffer_widget.eval_js_function("updateCover", url)
             self.buffer_widget.eval_js_function("updateLyricColor",
                                                 "#3F3F3F" if is_light_image(url) else "#CCCCCC")
@@ -222,8 +255,8 @@ class AppBuffer(BrowserBuffer):
 
     def update_audio_motion_gradient(self, url=None):
         try:
-            tags = self.get_audio_taginfos(self.vue_current_track)
-            title = tags['title']
+            tags = self.get_current_play_track_info()
+            title = tags['name']
             color_list = get_color(url, title, self.theme_background_rgb_color)
             self.buffer_widget.eval_js_function("setAudioMotion", color_list)
         except Exception as e:
@@ -241,7 +274,6 @@ class AppBuffer(BrowserBuffer):
                 infos.append(tags)
 
         infos.sort(key=cmp_to_key(self.music_compare))
-
         return infos
 
     def music_compare(self, a, b):
@@ -265,43 +297,45 @@ class AppBuffer(BrowserBuffer):
         audio.save()
 
     def show_tag_info(self):
-        for info in self.music_infos:
-            if info["path"] == self.vue_current_track:
-                message_to_emacs(f"Tag info: {info['name']} / {info['artist']} / {info['album']} ")
-                break
+        info = self.get_current_play_track_info()
+        log.debug(f"Tag info: {info['name']} / {info['artist']} / {info['album']} ")
 
     def convert_tag_coding(self):
-        for info in self.music_infos:
-            if info["path"] == self.vue_current_track:
-                name = self.convert_to_utf8(info["name"])
-                artist = self.convert_to_utf8(info["artist"])
-                album = self.convert_to_utf8(info["album"])
-
-                self.write_tag_info(self.vue_current_track, name, artist, album)
-
-                self.buffer_widget.eval_js_function("updateTagInfo", self.vue_current_track, name, artist, album)
-
-                message_to_emacs(f"Convert tag info to: {name} / {artist} / {album}")
-                break
+        if not self.is_local_source():
+            message_to_emacs('only support local play source')
+            return
+        info = self.get_current_play_track_info()
+        name = self.convert_to_utf8(info["name"])
+        artist = self.convert_to_utf8(info["artist"])
+        album = self.convert_to_utf8(info["album"])
+        track_path = info["path"]
+        self.write_tag_info(track_path, name, artist, album)
+        self.buffer_widget.eval_js_function("updateTagInfo", track_path, name, artist, album)
+        message_to_emacs(f"Convert tag info to: {name} / {artist} / {album}")
 
     def edit_tag_info(self):
-        for info in self.music_infos:
-            if info["path"] == self.vue_current_track:
-                eval_in_emacs('eaf-music-player-edit-tag-info', [self.buffer_id, info["name"], info["artist"], info["album"]])
-                break
+        if not self.is_local_source():
+            message_to_emacs('only support local play source')
+            return
+        info = self.get_current_play_track_info()
+        eval_in_emacs('eaf-music-player-edit-tag-info',
+                      [self.buffer_id, info["name"], info["artist"], info["album"]])
 
     @PostGui()
     def update_tag_info(self, tag_str):
-        tag_info = tag_str.split("\n")
+        if not self.is_local_source():
+            message_to_emacs('only support local play source')
+            return
 
+        info = self.get_current_play_track_info()
+        track_path = info['path']
+        tag_info = tag_str.split("\n")
         name = tag_info[0] if len(tag_info) > 0 else ""
         artist = tag_info[1] if len(tag_info) > 1 else ""
         album = tag_info[2] if len(tag_info) > 2 else ""
 
-        self.write_tag_info(self.vue_current_track, name, artist, album)
-
-        self.buffer_widget.eval_js_function("updateTagInfo", self.vue_current_track, name, artist, album)
-
+        self.write_tag_info(track_path, name, artist, album)
+        self.buffer_widget.eval_js_function("updateTagInfo", track_path, name, artist, album)
         message_to_emacs(f"Update tag info: {name} / {artist} / {album}")
 
     def convert_to_utf8(self, gbk_str):
@@ -316,10 +350,10 @@ class FetchCover(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
     fetch_failed = QtCore.pyqtSignal()
 
-    def __init__(self, track, cover_cache_dir, artist, title, album):
+    def __init__(self, track_unikey, cover_cache_dir, artist, title, album):
         QThread.__init__(self)
 
-        self.track = track
+        self.track_unikey = track_unikey
         self.cover_cache_dir = cover_cache_dir
         self.artist = artist
         self.title = title
@@ -332,11 +366,11 @@ class FetchCover(QThread):
         cover_path = get_cover_path(self.cover_cache_dir, self.artist, self.title)
 
         if os.path.exists(cover_path):
-            self.fetch_result.emit(self.track, cover_path)
+            self.fetch_result.emit(self.track_unikey, cover_path)
         else:
             result = music_service.fetch_cover(cover_path, self.title, self.artist, self.album)
             if result:
-                self.fetch_result.emit(self.track, cover_path)
+                self.fetch_result.emit(self.track_unikey, cover_path)
             else:
                 log.error(f"Fetch cover name for {self.title} failed.")
                 self.fetch_failed.emit()
@@ -344,10 +378,10 @@ class FetchCover(QThread):
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
 
-    def __init__(self, track, cache_dir, title, artist, album):
+    def __init__(self, track_unikey, cache_dir, title, artist, album):
         QThread.__init__(self)
 
-        self.track = track
+        self.track_unikey = track_unikey
         self.lyrics_cache_dir = cache_dir
         self.title = title
         self.artist = artist
@@ -361,7 +395,7 @@ class FetchLyric(QThread):
                 f.write(result)
         else:
             result = '[99:00.000]暂无歌词，请欣赏'
-        self.fetch_result.emit(self.track, result)
+        self.fetch_result.emit(self.track_unikey, result)
 
 
 def get_lyric_path(lyrics_cache_dir, artist, title):
