@@ -123,9 +123,18 @@
      window.initPanel = this.initPanel;
      window.forward = this.forward;
      window.backward = this.backward;
-     window.playNext = this.playNext;
-     window.playPrev = this.playPrev;
-     window.playRandom = this.playRandom;
+     window.playNext = () => {
+       this.$store.commit('setPlaySource', this.displaySource);
+       this.playNext();
+     };
+     window.playPrev = () => {
+       this.$store.commit('setPlaySource', this.displaySource);
+       this.playPrev();
+     };
+     window.playRandom = () => {
+       this.$store.commit('setPlaySource', this.displaySource);
+       this.playRandom();
+     };
      window.togglePlayStatus = this.togglePlayStatus;
      window.togglePlayOrder = this.togglePlayOrder;
      window.updateCover = this.updateCover;
@@ -325,7 +334,6 @@
      },
 
      playPrev() {
-       this.$store.commit('setPlaySource', this.displaySource);
        var currentIndex;
        var total;
        if (this.isLocalPlaySource) {
@@ -344,7 +352,6 @@
      },
 
      playNext() {
-       this.$store.commit('setPlaySource', this.displaySource);
        var currentIndex;
        var total;
        if (this.isLocalPlaySource) {
@@ -363,7 +370,6 @@
      },
 
      playRandom() {
-       this.$store.commit('setPlaySource', this.displaySource);
        var total;
        if (this.isLocalPlaySource) {
          total = this.localTrackInfos.length;
