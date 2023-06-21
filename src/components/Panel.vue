@@ -402,7 +402,7 @@
        if (val) {
          this.playAudioSource(val);
        } else {
-         this.handlePlayFinish();
+         this.playNext();
        }
      }
    }
