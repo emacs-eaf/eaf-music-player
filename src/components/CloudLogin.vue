@@ -40,12 +40,15 @@ export default {
     "cloudLoginQr"
   ]),
   watch: {
-    cloudLoginQr: {
-      // eslint-disable-next-line no-unused-vars
-      handler: function (val, oldVal) {
-        console.log(val.qrcode);
-        this.makeQrCode(val.qrcode);
-      }
+    cloudLoginQr: function(qrcode) {
+      console.log('watch new qrcode: ' + qrcode);
+      this.makeQrCode(qrcode);
+    }
+  },
+  mounted() {
+    console.log('cloud login mounted, qrcode: ' + this.cloudLoginQr);
+    if (this.cloudLoginQr) {
+      this.makeQrCode(this.cloudLoginQr);
     }
   }
 }

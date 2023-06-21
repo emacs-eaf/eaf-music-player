@@ -176,7 +176,7 @@ class NeteaseMusicApi(BaseProvider):
             song_id = songs[0].get('id', 0)
         return song_id
 
-    def _post(self, url: str, data=None, crypto: ApiCrypto = ApiCrypto.Unknown, options=None):
+    def _post_real(self, url: str, data=None, crypto: ApiCrypto = ApiCrypto.Unknown, options=None):
         headers = {
             'Content-Type': 'application/x-www-form-urlencoded'
         }
@@ -195,6 +195,13 @@ class NeteaseMusicApi(BaseProvider):
             except Exception:
                 return json.loads(resp_data)
         return self._session.post(url, data=data, headers=headers).json()
+
+    def _post(self, url: str, data=None, crypto: ApiCrypto = ApiCrypto.Unknown, options=None):
+        for i in range(3):
+            try:
+                return self._post_real(url, data, crypto, options)
+            except Exception as e:
+                logger.exception(f'post failed, {e}, try count {i+1}')
 
     def is_login(self) -> bool:
         self.user_id = self.get_user_id()

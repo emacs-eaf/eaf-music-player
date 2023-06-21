@@ -159,18 +159,21 @@ class NeteaseBackend:
 
     def _loop_check_qrcode(self):
         while True:
-            result = self._api.login_qr_check()
-            code = result.get('code')
+            try:
+                result = self._api.login_qr_check()
+                code = result.get('code')
 
-            # expired
-            if code == 800:
-                qrcode = self._api.login_qr_create()
-                logger.debug(f'loign qrcode is expired, renew: {qrcode}')
-                self._post_exec_js('cloudUpdateLoginQr', qrcode)
-            elif code == 803:
-                logger.debug('login qrcode success')
-                self._do_login_success()
-                break
+                # expired
+                if code == 800:
+                    qrcode = self._api.login_qr_create()
+                    logger.debug(f'loign qrcode is expired, renew: {qrcode}')
+                    self._post_exec_js('cloudUpdateLoginQr', qrcode)
+                elif code == 803:
+                    logger.debug('login qrcode success')
+                    self._do_login_success()
+                    break
+            except Exception as e:
+                logger.exception(f'login qr check error, {e}')
             time.sleep(1.0)
 
     def _cache_quality_mp3(self, song_id: int, mp3_name: str):

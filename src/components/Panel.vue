@@ -397,7 +397,7 @@
      },
 
      cloudUpdateLoginQr(val) {
-       this.$store.commit("updateCloudLoginQr", val);
+       this.$store.commit("updateCloudLoginQr", val.qrcode);
      },
 
      cloudUpdateLoginState(val) {
