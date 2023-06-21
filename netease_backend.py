@@ -52,10 +52,12 @@ class NeteaseBackend:
         self._thread_caches = []
         self._track_infos = {}
         self._cache_queue = queue.Queue()
+        self._logined = False
 
         self.music_cache_dir = get_emacs_var("eaf-music-cache-dir")
         if self.music_cache_dir == "":
             self.music_cache_dir = os.path.join(utils.get_cloud_cache_dir(), "music")
+        logger.debug(f'music cache dir: {self.music_cache_dir}')
 
     def get_music_cache_file(self, name):
         if not os.path.exists(self.music_cache_dir):
@@ -94,6 +96,7 @@ class NeteaseBackend:
 
         logger.debug(f'login state: {is_login}')
         if is_login:
+            self._logined = True
             logger.debug('is logined, start load like songs')
             self._load_like_songs()
         else:
@@ -110,7 +113,7 @@ class NeteaseBackend:
             self._exec_js('cloudUpdateTrackInfos', songs)
             logger.debug(f'load songs from cache: {os.path.basename(db_file)}')
 
-        self._refresh_like_songs()
+        self.refresh_like_songs()
         logger.debug('start fetch songs from cloud')
 
     def _save_like_songs(self, songs):
@@ -118,7 +121,10 @@ class NeteaseBackend:
         with open(utils.get_db_cache_file(f'{self._api.user_id}.json'), 'w') as fp:
             fp.write(data)
 
-    def _refresh_like_songs(self):
+    def refresh_like_songs(self):
+        if not self._logined:
+            logger.debug('refresh like songs require login')
+            return
         self._js_post(self._api.get_like_songs, 'cloudUpdateTrackInfos', self._handle_like_songs)
 
     def _handle_like_songs(self, songs, _):
@@ -161,11 +167,12 @@ class NeteaseBackend:
 
     @PostGui()
     def _do_login_success(self):
+        self._logined = True
         logger.info('notify user login success')
         self._exec_js('cloudUpdateLoginState', True)
 
         logger.info('get like songs')
-        self._refresh_like_songs()
+        self.refresh_like_songs()
 
     def _loop_check_qrcode(self):
         while True:

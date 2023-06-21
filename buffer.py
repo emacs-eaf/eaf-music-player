@@ -313,6 +313,10 @@ class AppBuffer(BrowserBuffer):
         self.buffer_widget.eval_js_function("updateTagInfo", track_path, name, artist, album)
         message_to_emacs(f"Convert tag info to: {name} / {artist} / {album}")
 
+    def refresh_cloud_tracks(self):
+        log.debug('refresh cloud tracks')
+        self._netease_backend.refresh_like_songs()
+
     def edit_tag_info(self):
         if not self.is_local_source():
             message_to_emacs('only support local play source')

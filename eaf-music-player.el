@@ -113,6 +113,7 @@
     ("e" . "edit_tag_info")
     ("s" . "show_tag_info")
     ("T" . "convert_tag_coding")
+    ("r" . "refresh_cloud_tracks")
     )
   "The keybinding of EAF Music Player."
   :type 'cons)

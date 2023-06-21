@@ -128,19 +128,18 @@ const store = new Vuex.Store({
             state.cloudCurrentTrackIndex = index;
         },
         updateCloudTrackInfos(state, infos) {
-            var currentTrack;
-            if (state.cloudTrackInfos.length > 0) {
-                currentTrack = state.cloudTrackInfos[state.cloudCurrentTrackIndex];
+            var currentTrackId = 0;
+            if (state.cloudTrackInfos.length > 0 && state.cloudCurrentTrackIndex !== -1) {
+                currentTrackId = state.cloudTrackInfos[state.cloudCurrentTrackIndex].id;
             }
             state.cloudTrackInfos = infos;
             state.cloudNumberWidth = state.cloudTrackInfos.length.toString().length;
 
-            if (currentTrack) {
-                var currentIndex = infos.indexOf(currentTrack);
-                if (currentIndex) {
-                    state.cloudCurrentTrackIndex = currentTrack;
-                } else {
-                    state.cloudCurrentTrackIndex = 0;
+            if (currentTrackId > 0) {
+                var trackIds = state.cloudTrackInfos.map(function (track) { return track.id });
+                var currentIndex = trackIds.indexOf(currentTrackId)
+                if (currentIndex !== -1) {
+                    state.cloudCurrentTrackIndex = currentIndex;
                 }
             }
         },
