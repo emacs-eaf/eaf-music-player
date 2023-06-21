@@ -106,6 +106,15 @@
      ])
    },
    watch: {
+     localTrackInfos: function() {
+       if (this.playOrderIcon === "random") {
+         this.playRandom();
+       } else {
+         if (this.$refs.player.paused) {
+           this.playTrack(this.localCurrentTrackIndex);
+         }
+       }
+     },
      currentTime: function(newVal) {
        this.$emit('getCurrentTime', newVal);
      }
@@ -390,7 +399,11 @@
      },
 
      cloudUpdateTrackAudioSource(val) {
-       this.playAudioSource(val);
+       if (val) {
+         this.playAudioSource(val);
+       } else {
+         this.handlePlayFinish();
+       }
      }
    }
  }

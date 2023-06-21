@@ -1,3 +1,7 @@
+import json
+import os.path
+import queue
+import shutil
 import time
 from typing import Any
 
@@ -5,11 +9,10 @@ from core.utils import PostGui
 from core.webengine import BrowserBuffer
 from PyQt6.QtCore import QThread, pyqtSignal
 
-from music_service import music_service
+from music_service import music_service, utils
 from music_service.netease import NeteaseMusicApi
-from music_service.utils import get_logger
 
-logger = get_logger('NeteaseBackend')
+logger = utils.get_logger('NeteaseBackend')
 
 
 class SafeThread(QThread):
@@ -48,6 +51,7 @@ class NeteaseBackend:
         self._api: NeteaseMusicApi = music_service.get_provider('netease')
         self._thread_caches = []
         self._track_infos = {}
+        self._cache_queue = queue.Queue()
 
     def _thread_post(self, exec_func, handle_func=None, handle_arg=None, *args, **kwargs):
         task = SafeThread(exec_func, handle_func, handle_arg, *args, **kwargs)
@@ -73,6 +77,7 @@ class NeteaseBackend:
 
     def init_app(self):
         self._thread_post(self._api.is_login, self._handle_user_login)
+        self._thread_post(self._start_cache_mp3_task)
 
     def _handle_user_login(self, is_login, _):
         self._exec_js('cloudUpdateLoginState', is_login)
@@ -86,13 +91,28 @@ class NeteaseBackend:
             self._login_qr_create()
 
     def _load_like_songs(self):
-        # todo load cache
+        db_file = utils.get_db_cache_file(f'{self._api.user_id}.json')
+        if os.path.isfile(db_file):
+            with open(db_file, 'r') as fp:
+                data = fp.read()
+            songs = json.loads(data)
+            self._track_infos = {x['id']: x for x in songs }
+            self._exec_js('cloudUpdateTrackInfos', songs)
+            logger.debug(f'load songs from cache: {os.path.basename(db_file)}')
+
         self._refresh_like_songs()
+        logger.debug('start fetch songs from cloud')
+
+    def _save_like_songs(self, songs):
+        data = json.dumps(songs)
+        with open(utils.get_db_cache_file(f'{self._api.user_id}.json'), 'w') as fp:
+            fp.write(data)
 
     def _refresh_like_songs(self):
         self._js_post(self._api.get_like_songs, 'cloudUpdateTrackInfos', self._handle_like_songs)
 
     def _handle_like_songs(self, songs, _):
+        self._save_like_songs(songs)
         self._track_infos = {x['id']: x for x in songs }
         return songs
 
@@ -103,7 +123,15 @@ class NeteaseBackend:
     def fetch_track_audio_source(self, song_id, track_unikey):
         logger.debug(f'fetch track audio source, song_id: {song_id}')
         song_id = int(song_id)
-        self._thread_post(self._api.get_song_url, self._handle_fetch_audio_source, track_unikey, song_id)
+
+        info = self.get_track_info(song_id)
+        mp3_name = f"{info['artist']}_{info['name']}.mp3"
+        cache_mp3_file = utils.get_music_cache_file(mp3_name)
+        if os.path.exists(cache_mp3_file):
+            self._exec_js('cloudUpdateTrackAudioSource', cache_mp3_file)
+        else:
+            self._cache_quality_mp3(song_id, mp3_name)
+            self._thread_post(self._api.get_song_url, self._handle_fetch_audio_source, track_unikey, song_id)
 
     def _handle_fetch_audio_source(self, info, track_unikey):
         url = ''
@@ -144,3 +172,21 @@ class NeteaseBackend:
                 self._do_login_success()
                 break
             time.sleep(1.0)
+
+    def _cache_quality_mp3(self, song_id: int, mp3_name: str):
+        self._cache_queue.put((song_id, mp3_name))
+
+    def _start_cache_mp3_task(self):
+        while True:
+            task = self._cache_queue.get()
+            if task:
+                try:
+                    song_id, mp3_name = task
+                    url = self._api.get_exhigh_song_url(song_id)
+                    temp_file = utils.get_temp_cache_file(mp3_name)
+                    if utils.download_file(url, temp_file):
+                        mp3_file = utils.get_music_cache_file(mp3_name)
+                        shutil.move(temp_file, mp3_file)
+                except Exception as e:
+                    logger.exception(f'cache mp3 task, failed: {e}')
+            time.sleep(2)

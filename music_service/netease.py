@@ -95,12 +95,13 @@ class NeteaseMusicApi(BaseProvider):
         self._session = requests.session()
         self._session.headers['User-Agent'] = USER_AGENT
         self._session.headers['Referer'] = 'https://music.163.com'
-        self._session.headers['X-Real-IP'] = '27.18.2.122'
-        self._session.headers['X-Forwarded-For'] = '27.18.2.122'
+        # self._session.headers['X-Real-IP'] = '27.18.2.122'
+        # self._session.headers['X-Forwarded-For'] = '27.18.2.122'
 
         # load cookies
         self._unikey = ''
         self._load_cookies()
+        self.user_id = 0
 
     def _load_default_cookies(self):
         kvs = [kv for kv in HTTP_DEFAULT_COOKIES.split('; ')]
@@ -196,7 +197,8 @@ class NeteaseMusicApi(BaseProvider):
         return self._session.post(url, data=data, headers=headers).json()
 
     def is_login(self) -> bool:
-        return bool(self.get_user_id())
+        self.user_id = self.get_user_id()
+        return bool(self.user_id)
 
     def get_user_id(self) -> int:
         resp = self.api_user_account()
@@ -224,6 +226,7 @@ class NeteaseMusicApi(BaseProvider):
 
     def get_like_songs(self) -> Optional[List]:
         uid = self.get_user_id()
+        self.user_id = uid
         if not uid:
             logger.error('not login')
             return None
@@ -265,6 +268,11 @@ class NeteaseMusicApi(BaseProvider):
             'id': song_id,
             'url': url
         }
+
+    def get_exhigh_song_url(self, song_id: int) -> str:
+        result = self.api_song_url_v1(song_id, 'exhigh')
+        url = result['data'][0].get('url', '')
+        return url
 
     def api_login_qr_key(self):
         url = 'https://music.163.com/weapi/login/qrcode/unikey'

@@ -23,7 +23,7 @@ const store = new Vuex.Store({
         // cloud
         cloudLoginState: true,
         cloudLoginQr: '',
-        cloudCurrentTrackIndex: 0,
+        cloudCurrentTrackIndex: -1,
         cloudNumberWidth: 0,
         cloudTrackInfos: [],
 
@@ -128,8 +128,21 @@ const store = new Vuex.Store({
             state.cloudCurrentTrackIndex = index;
         },
         updateCloudTrackInfos(state, infos) {
+            var currentTrack;
+            if (state.cloudTrackInfos.length > 0) {
+                currentTrack = state.cloudTrackInfos[state.cloudCurrentTrackIndex];
+            }
             state.cloudTrackInfos = infos;
             state.cloudNumberWidth = state.cloudTrackInfos.length.toString().length;
+
+            if (currentTrack) {
+                var currentIndex = infos.indexOf(currentTrack);
+                if (currentIndex) {
+                    state.cloudCurrentTrackIndex = currentTrack;
+                } else {
+                    state.cloudCurrentTrackIndex = 0;
+                }
+            }
         },
         updateCloudLoginQr(state, val) {
             state.cloudLoginQr = val;
