@@ -5,7 +5,7 @@ import shutil
 import time
 from typing import Any
 
-from core.utils import PostGui
+from core.utils import PostGui, get_emacs_var
 from core.webengine import BrowserBuffer
 from PyQt6.QtCore import QThread, pyqtSignal
 
@@ -52,6 +52,16 @@ class NeteaseBackend:
         self._thread_caches = []
         self._track_infos = {}
         self._cache_queue = queue.Queue()
+
+        self.music_cache_dir = get_emacs_var("eaf-music-cache-dir")
+        if self.music_cache_dir == "":
+            self.music_cache_dir = os.path.join(utils.get_cloud_cache_dir(), "music")
+
+    def get_music_cache_file(self, name):
+        if not os.path.exists(self.music_cache_dir):
+            os.makedirs(self.music_cache_dir)
+
+        return os.path.join(self.music_cache_dir, name)
 
     def _thread_post(self, exec_func, handle_func=None, handle_arg=None, *args, **kwargs):
         task = SafeThread(exec_func, handle_func, handle_arg, *args, **kwargs)
@@ -126,7 +136,7 @@ class NeteaseBackend:
 
         info = self.get_track_info(song_id)
         mp3_name = f"{info['artist']}_{info['name']}.mp3"
-        cache_mp3_file = utils.get_music_cache_file(mp3_name)
+        cache_mp3_file = self.get_music_cache_file(mp3_name)
         if os.path.exists(cache_mp3_file):
             self._exec_js('cloudUpdateTrackAudioSource', cache_mp3_file)
         else:
@@ -188,7 +198,7 @@ class NeteaseBackend:
                     url = self._api.get_exhigh_song_url(song_id)
                     temp_file = utils.get_temp_cache_file(mp3_name)
                     if utils.download_file(url, temp_file):
-                        mp3_file = utils.get_music_cache_file(mp3_name)
+                        mp3_file = self.get_music_cache_file(mp3_name)
                         shutil.move(temp_file, mp3_file)
                 except Exception as e:
                     logger.exception(f'cache mp3 task, failed: {e}')

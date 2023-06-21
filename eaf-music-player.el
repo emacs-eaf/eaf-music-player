@@ -130,6 +130,10 @@
   "The default music file or directory."
   :type 'file)
 
+(defcustom eaf-music-cache-dir ""
+  "The directory to cache netease music file, default save to music-player/src/cloud_cache/music."
+  :type 'string)
+
 ;;;###autoload
 (defun eaf-open-music-player (&optional music-file)
   "Open EAF music player."

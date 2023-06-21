@@ -52,9 +52,6 @@ def get_cloud_cache_sub_dir(dirname: str, filename: str):
 def get_cookie_cache_file(name: str) -> str:
     return get_cloud_cache_sub_dir('cookie', name)
 
-def get_music_cache_file(name: str) -> str:
-    return get_cloud_cache_sub_dir('music', name)
-
 def get_temp_cache_file(name: str) -> str:
     return get_cloud_cache_sub_dir('temp', name)
 
