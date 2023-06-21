@@ -71,6 +71,7 @@
    name: 'Panel',
    data() {
      return {
+       audioSource: "",
        currentTime: "",
        currentCover: "",
        iconCacheDir: "",
@@ -92,42 +93,22 @@
      ...mapState([
        "trackName",
        "trackArtist",
-       "audioSource",
        "playSource",
        "displaySource",
-       "cloudCurrentTrackIndex",
        "localCurrentTrackIndex",
+       "localTrackInfos",
+       "cloudCurrentTrackIndex",
+       "cloudTrackInfos",
      ]),
      ...mapGetters([
-       "currentPlayTrackKey"
+       "currentPlayTrackKey",
+       "isLocalPlaySource",
      ])
    },
    watch: {
-     audioSource: function(source) {
-       if (source) {
-         this.playIcon = "pause-circle";
-         this.$refs.player.load();
-         this.$refs.player.play();
-       } else {
-         this.$refs.player.pause();
-         this.playIcon = "play-circle";
-       }
-     },
      currentTime: function(newVal) {
        this.$emit('getCurrentTime', newVal);
-     },
-     cloudCurrentTrackIndex: function() {
-       this.currentCover = "";
-       window.pyobject.vue_update_current_track(this.playSource,
-                                                this.currentPlayTrackKey);
-     },
-     localCurrentTrackIndex: function() {
-       this.currentCover = "";
-       window.pyobject.vue_update_current_track(this.playSource,
-                                                this.currentPlayTrackKey);
      }
-   },
-   props: {
    },
    mounted() {
      window.initPanel = this.initPanel;
@@ -143,18 +124,27 @@
      window.updateLyricColor = this.updateLyricColor;
      window.setAudioMotion = this.setAudioMotion;
 
+     // cloud
+     window.cloudUpdateTrackInfos = this.cloudUpdateTrackInfos;
+     window.cloudUpdateLoginState = this.cloudUpdateLoginState;
+     window.cloudUpdateLoginQr = this.cloudUpdateLoginQr;
+     window.cloudUpdateTrackAudioSource = this.cloudUpdateTrackAudioSource;
+
      this.audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
        {
          source: document.getElementById('audio')
-       })     
-     
+       }
+     )
+
+     this.$root.$on("playTrack", this.playTrack);
      let that = this;
      this.$refs.player.addEventListener("ended", this.handlePlayFinish);
      this.$refs.player.addEventListener('timeupdate', () => {
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
+
    },
    methods: {
      updateCover(url) {
@@ -288,24 +278,119 @@
        }
      },
 
+     // player
+     playAudioSource(source) {
+       if (source) {
+         this.audioSource = source;
+         this.playIcon = "pause-circle";
+         this.$refs.player.load();
+         var playPromise = this.$refs.player.play();
+         if (playPromise !== undefined) {
+           // eslint-disable-next-line no-unused-vars
+           playPromise.then(_ => {}).catch(error => {
+             console.log(error);
+           });
+         }
+       } else {
+         this.$refs.player.pause();
+         this.playIcon = "play-circle";
+       }
+     },
+     
+     playTrack(index) {
+       var track;
+       if (this.isLocalPlaySource) {
+         track = this.localTrackInfos[index];
+         this.$store.commit('updateLocalCurrentTrackIndex', index);
+       } else {
+         track = this.cloudTrackInfos[index];
+         this.$store.commit('updateCloudCurrentTrackIndex', index);
+       }
+       this.$store.commit('updatePlayTrackInfo', track);
+
+       this.currentCover = "";
+       window.pyobject.vue_update_current_track(this.playSource,
+                                                this.currentPlayTrackKey);
+       this.playAudioSource(track.path);
+
+     },
+
      playPrev() {
        this.$store.commit('setPlaySource', this.displaySource);
-       this.$store.dispatch('playPrev');
+       var currentIndex;
+       var total;
+       if (this.isLocalPlaySource) {
+         currentIndex = this.localCurrentTrackIndex;
+         total = this.localTrackInfos.length;
+       } else {
+         currentIndex = this.cloudCurrentTrackIndex;
+         total = this.cloudTrackInfos.length;
+       }
+       if (currentIndex > 0) {
+         currentIndex -= 1;
+       } else {
+         currentIndex = total -1;
+       }
+       this.playTrack(currentIndex);
      },
 
      playNext() {
        this.$store.commit('setPlaySource', this.displaySource);
-       this.$store.dispatch('playNext');
+       var currentIndex;
+       var total;
+       if (this.isLocalPlaySource) {
+         currentIndex = this.localCurrentTrackIndex;
+         total = this.localTrackInfos.length;
+       } else {
+         currentIndex = this.cloudCurrentTrackIndex;
+         total = this.cloudTrackInfos.length;
+       }
+       if (currentIndex < total - 1) {
+         currentIndex += 1;
+       } else {
+         currentIndex = 0;
+       }
+       this.playTrack(currentIndex);
      },
 
      playRandom() {
        this.$store.commit('setPlaySource', this.displaySource);
-       this.$store.dispatch('playRandom');
+       var total;
+       if (this.isLocalPlaySource) {
+         total = this.localTrackInfos.length;
+       } else {
+         total = this.cloudTrackInfos.length;
+       }
+       var min = 0;
+       var max = total;
+       var randomIndex = Math.floor(Math.random() * (max - min + 1)) + min;
+       this.playTrack(randomIndex);
      },
 
      playAgain() {
-       this.$store.commit('setPlaySource', this.displaySource);
-       this.$store.dispatch('playAgain');
+       var currentIndex;
+       if (this.isLocalPlaySource) {
+         currentIndex = this.localCurrentTrackIndex;
+       } else {
+         currentIndex = this.cloudCurrentTrackIndex;
+       }
+       this.playTrack(currentIndex);
+     },
+
+     cloudUpdateTrackInfos(track_infos) {
+       this.$store.commit("updateCloudTrackInfos", track_infos);
+     },
+
+     cloudUpdateLoginQr(val) {
+       this.$store.commit("updateCloudLoginQr", val);
+     },
+
+     cloudUpdateLoginState(val) {
+       this.$store.commit("updateCloudLoginState", val);
+     },
+
+     cloudUpdateTrackAudioSource(val) {
+       this.playAudioSource(val);
      }
    }
  }

@@ -55,7 +55,7 @@ export default {
    methods: {
      playItem(index) {
        this.$store.commit('setPlaySource', 'cloud');
-       this.$store.dispatch("playTrack", index)
+       this.$root.$emit("playTrack", index);
      },
 
      padNumber(num, size) {
@@ -105,7 +105,7 @@ export default {
 
      scrollToCurrentTrack() {
        if (this.$refs.playlist) {
-         this.$refs.playlist.children[this.cloudCurrentTrackIndex].scrollIntoViewIfNeeded(false);
+         this.$refs.playlist.children[this.cloudCurrentTrackIndex]?.scrollIntoViewIfNeeded(false);
        }
      }
    }

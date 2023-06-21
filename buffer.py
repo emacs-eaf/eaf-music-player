@@ -46,6 +46,9 @@ from music_service.utils import get_logger
 from netease_backend import NeteaseBackend
 
 
+# os.environ['QTWEBENGINE_CHROMIUM_FLAGS'] = '--disable-web-security'
+
+
 log = get_logger('AppBuffer')
 
 class PlaySourceType:

@@ -72,7 +72,7 @@
 
      playItem(index) {
        this.$store.commit('setPlaySource', 'local');
-       this.$store.dispatch("playTrack", index)
+       this.$root.$emit("playTrack", index);
      },
 
      padNumber(num, size) {
@@ -132,7 +132,7 @@
 
      scrollToCurrentTrack() {
        if (this.$refs.playlist) {
-         this.$refs.playlist.children[this.localCurrentTrackIndex].scrollIntoViewIfNeeded(false);
+         this.$refs.playlist.children[this.localCurrentTrackIndex]?.scrollIntoViewIfNeeded(false);
        }
      }
    }
