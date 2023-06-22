@@ -88,6 +88,8 @@ class NeteaseBackend:
         self._exec_js(js_method, val)
 
     def init_app(self):
+        self._load_like_songs()
+
         self._thread_post(self._api.is_login, self._handle_user_login)
         self._thread_post(self._start_cache_mp3_task)
 
@@ -97,14 +99,14 @@ class NeteaseBackend:
         logger.debug(f'login state: {is_login}')
         if is_login:
             self._logined = True
-            logger.debug('is logined, start load like songs')
-            self._load_like_songs()
+            logger.debug('is logined, start refresh like songs')
+            self.refresh_like_songs()
         else:
             logger.debug('is not login, start get login qrcode')
             self._login_qr_create()
 
     def _load_like_songs(self):
-        db_file = utils.get_db_cache_file(f'{self._api.user_id}.json')
+        db_file = utils.get_db_cache_file('tracks.json')
         if os.path.isfile(db_file):
             with open(db_file, 'r') as fp:
                 data = fp.read()
@@ -113,12 +115,9 @@ class NeteaseBackend:
             self._exec_js('cloudUpdateTrackInfos', songs)
             logger.debug(f'load songs from cache: {os.path.basename(db_file)}')
 
-        self.refresh_like_songs()
-        logger.debug('start fetch songs from cloud')
-
     def _save_like_songs(self, songs):
         data = json.dumps(songs)
-        with open(utils.get_db_cache_file(f'{self._api.user_id}.json'), 'w') as fp:
+        with open(utils.get_db_cache_file('tracks.json'), 'w') as fp:
             fp.write(data)
 
     def refresh_like_songs(self):

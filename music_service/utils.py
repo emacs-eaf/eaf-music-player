@@ -30,7 +30,7 @@ def _download_file(url, filename) -> bool:
     if not url:
         return False
     url = url.strip()
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True, timeout=5)
     with open(filename, 'wb') as file:
         for chunk in response.iter_content(chunk_size=4096):
             if chunk:

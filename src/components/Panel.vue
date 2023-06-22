@@ -306,7 +306,8 @@
          if (playPromise !== undefined) {
            // eslint-disable-next-line no-unused-vars
            playPromise.then(_ => {}).catch(error => {
-             console.log(error);
+             console.log(`play catch error: ${error}, audio source: ${this.audioSource}`);
+             this.playNext();
            });
          }
        } else {
