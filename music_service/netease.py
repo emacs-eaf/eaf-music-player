@@ -189,12 +189,12 @@ class NeteaseMusicApi(BaseProvider):
             data = weapi_encrypt(data)
         elif crypto == ApiCrypto.EApi:
             data = eapi_encrypt(options.get('url', ''), data)
-            resp_data = self._session.post(url, data=data, headers=headers).content
+            resp_data = self._session.post(url, data=data, headers=headers, timeout=3).content
             try:
                 return json.loads(eapi_decrypt(resp_data))
             except Exception:
                 return json.loads(resp_data)
-        return self._session.post(url, data=data, headers=headers).json()
+        return self._session.post(url, data=data, headers=headers, timeout=3).json()
 
     def _post(self, url: str, data=None, crypto: ApiCrypto = ApiCrypto.Unknown, options=None):
         for i in range(3):
