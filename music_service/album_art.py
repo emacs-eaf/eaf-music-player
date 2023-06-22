@@ -10,7 +10,7 @@ class AlbumArt(BaseProvider):
     def fetch_lyric(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
         pass
 
-    def fetch_cover(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
+    def fetch_cover(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
         if artist:
             fake_album = album if album else name
             cmd = f"album-art '{artist}' '{fake_album}'"
