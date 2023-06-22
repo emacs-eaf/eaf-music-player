@@ -7,7 +7,7 @@ from music_service.base import BaseProvider
 class AlbumArt(BaseProvider):
     provider_name = 'album-art'
 
-    def fetch_lyric(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
+    def fetch_lyric(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
         pass
 
     def fetch_cover(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
