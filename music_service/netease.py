@@ -132,15 +132,17 @@ class NeteaseMusicApi(BaseProvider):
         with open(cookie_file, 'w') as fp:
             fp.write(json.dumps(cookies))
 
-    def fetch_lyric(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
-        song_id = self.get_song_id(name, artist, album, fuzzy=False)
+    def fetch_lyric(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
+        if song_id == 0:
+            song_id = self.get_song_id(name, artist, album, fuzzy=False)
         if not song_id:
             return None
         lyric_result = self.api_lyric(song_id)
         return lyric_result.get('lrc', {}).get('lyric', None)
-
-    def fetch_cover(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
-        song_id = self.get_song_id(name, artist, album, fuzzy=False)
+    
+    def fetch_cover(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
+        if song_id == 0:
+            song_id = self.get_song_id(name, artist, album, fuzzy=False)
         if not song_id:
             return None
         result = self.api_song_detail(song_id)

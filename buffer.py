@@ -208,13 +208,14 @@ class AppBuffer(BrowserBuffer):
         title = infos['name']
         album = infos['album']
         unikey = infos['unikey']
+        song_id = infos['id']
         cover_path = get_cover_path(self.cover_cache_dir, artist, title)
 
         # Fill default cover if no match cover found.
         if not os.path.exists(cover_path):
             self.buffer_widget.eval_js_function("updateCover", self.get_default_cover_path())
             self.buffer_widget.eval_js_function("updateLyricColor", "#CCCCCC")
-            fetch_cover_thread = FetchCover(unikey, self.cover_cache_dir, artist, title, album)
+            fetch_cover_thread = FetchCover(unikey, self.cover_cache_dir, artist, title, album, song_id)
             fetch_cover_thread.fetch_result.connect(self.update_cover)
             fetch_cover_thread.fetch_failed.connect(self.update_audio_motion_gradient)
             self.thread_queue.append(fetch_cover_thread)
@@ -229,6 +230,7 @@ class AppBuffer(BrowserBuffer):
         artist = infos['artist']
         album = infos['album']
         unikey = infos['unikey']
+        song_id = infos['id']
         lyric_path = get_lyric_path(self.lyrics_cache_dir, artist, title)
 
         if os.path.exists(lyric_path):
@@ -236,7 +238,7 @@ class AppBuffer(BrowserBuffer):
                 self.update_lyric(unikey, f.read())
         else:
             self.update_lyric(unikey, '[99:00.000]正在搜索歌词，请稍等')
-            fetch_lyric_thread = FetchLyric(unikey, self.lyrics_cache_dir, title, artist, album)
+            fetch_lyric_thread = FetchLyric(unikey, self.lyrics_cache_dir, title, artist, album, song_id)
             fetch_lyric_thread.fetch_result.connect(self.update_lyric)
             self.thread_queue.append(fetch_lyric_thread)
             fetch_lyric_thread.start()
@@ -272,6 +274,9 @@ class AppBuffer(BrowserBuffer):
                 tags = self.get_audio_taginfos(file)
                 tags['name'] = tags['title']
                 del tags['title']
+                if 'id' not in tags:
+                    tags['id'] = 0
+                
                 infos.append(tags)
 
         infos.sort(key=cmp_to_key(self.music_compare))
@@ -355,7 +360,7 @@ class FetchCover(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
     fetch_failed = QtCore.pyqtSignal()
 
-    def __init__(self, track_unikey, cover_cache_dir, artist, title, album):
+    def __init__(self, track_unikey, cover_cache_dir, artist, title, album, song_id):
         QThread.__init__(self)
 
         self.track_unikey = track_unikey
@@ -363,6 +368,7 @@ class FetchCover(QThread):
         self.artist = artist
         self.title = title
         self.album = album
+        self.song_id = song_id
 
     def run(self):
         if not os.path.exists(self.cover_cache_dir):
@@ -373,7 +379,7 @@ class FetchCover(QThread):
         if os.path.exists(cover_path):
             self.fetch_result.emit(self.track_unikey, cover_path)
         else:
-            result = music_service.fetch_cover(cover_path, self.title, self.artist, self.album)
+            result = music_service.fetch_cover(cover_path, self.title, self.artist, self.album, self.song_id)
             if result:
                 self.fetch_result.emit(self.track_unikey, cover_path)
             else:
@@ -383,7 +389,7 @@ class FetchCover(QThread):
 class FetchLyric(QThread):
     fetch_result = QtCore.pyqtSignal(str, str)
 
-    def __init__(self, track_unikey, cache_dir, title, artist, album):
+    def __init__(self, track_unikey, cache_dir, title, artist, album, song_id):
         QThread.__init__(self)
 
         self.track_unikey = track_unikey
@@ -391,9 +397,10 @@ class FetchLyric(QThread):
         self.title = title
         self.artist = artist
         self.album = album
+        self.song_id = song_id
 
     def run(self):
-        result = music_service.fetch_lyric(self.title, self.artist, self.album)
+        result = music_service.fetch_lyric(self.title, self.artist, self.album, self.song_id)
         if result:
             lyric_path = get_lyric_path(self.lyrics_cache_dir, self.artist, self.title)
             with open(lyric_path, "w") as f:

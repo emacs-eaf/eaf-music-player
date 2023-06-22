@@ -11,7 +11,7 @@ from music_service.base import BaseProvider
 class QQMusicApi(BaseProvider):
     provider_name = 'qq'
 
-    def fetch_lyric(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
+    def fetch_lyric(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
         result = self.api_search_song(name, artist, album)
         item_list = result.get('data', {}).get('song', {}).get('itemlist', None)
         if not item_list:
@@ -25,7 +25,7 @@ class QQMusicApi(BaseProvider):
             return None
         return base64.b64decode(lyric).decode('utf-8')
 
-    def fetch_cover(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
+    def fetch_cover(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
         result = self.api_search_song(name, artist, album)
         item_list = result.get('data', {}).get('album', {}).get('itemlist', None)
         if not item_list:

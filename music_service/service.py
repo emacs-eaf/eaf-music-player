@@ -60,7 +60,7 @@ class MusicService:
     def get_provider(self, name: str) -> Optional[BaseProvider]:
         return self._prividers.get(name, None)
 
-    def fetch_lyric(self, name: str, artist: str = '', album: str = '') -> Optional[str]:
+    def fetch_lyric(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
         name = refine(name)
         artist = refine(artist)
         album = refine(album)
@@ -68,7 +68,7 @@ class MusicService:
             try:
                 log.debug(f'fetch lyric provider: {provider.provider_name} name: {name}, ' \
                           f'artist: {artist}, album: {album}')
-                result = provider.fetch_lyric(name, artist, album)
+                result = provider.fetch_lyric(name, artist, album, song_id)
                 if result and check_lyric_is_valid(result):
                     return html.unescape(refine_lyrics(result))
             except Exception as e:
@@ -77,13 +77,13 @@ class MusicService:
         return None
 
 
-    def fetch_cover(self, save_path: str, name: str, artist: str = '', album: str = '') -> bool:
+    def fetch_cover(self, save_path: str, name: str, artist: str = '', album: str = '', song_id: int = 0) -> bool:
         name = refine(name)
         artist = refine(artist)
         album = refine(album)
         for provider in self._prividers.values():
             try:
-                cover_url = provider.fetch_cover(name, artist, album)
+                cover_url = provider.fetch_cover(name, artist, album, song_id)
                 log.debug(f'fetch cover provider: {provider.provider_name} ' \
                           f'name: {name}, cover_url: {cover_url}')
                 if cover_url and download_file(cover_url, save_path):
