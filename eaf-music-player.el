@@ -109,6 +109,8 @@
     ("C-m" . "js_sort_by_album")
     ("C-l" . "js_change_panel")
     ("C-u" . "js_toggle_play_source")
+    ("C-s" . "search_text_forward")
+    ("C-r" . "search_text_backward")
     ("F" . "open_link")
     ("e" . "edit_tag_info")
     ("s" . "show_tag_info")
