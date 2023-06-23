@@ -264,8 +264,7 @@ class NeteaseMusicApi(BaseProvider):
                 'id': song['id'],
                 'name': song['name'],
                 'artist': song.get('ar', [{}])[0].get('name', ''),
-                'album': song.get('al', {}).get('name', ''),
-                'album_url': song.get('al', {}).get('picUrl', '')
+                'album': song.get('al', {}).get('name', '')
             }
             song_list.append(song_info)
         return song_list
