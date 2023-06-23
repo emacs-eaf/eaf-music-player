@@ -208,7 +208,7 @@ class AppBuffer(BrowserBuffer):
         title = infos['name']
         album = infos['album']
         unikey = infos['unikey']
-        song_id = infos['id']
+        song_id = infos.get('id', 0)
         cover_path = get_cover_path(self.cover_cache_dir, artist, title)
 
         # Fill default cover if no match cover found.
@@ -230,7 +230,7 @@ class AppBuffer(BrowserBuffer):
         artist = infos['artist']
         album = infos['album']
         unikey = infos['unikey']
-        song_id = infos['id']
+        song_id = infos.get('id', 0)
         lyric_path = get_lyric_path(self.lyrics_cache_dir, artist, title)
 
         if os.path.exists(lyric_path):
