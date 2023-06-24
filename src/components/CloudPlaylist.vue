@@ -216,6 +216,8 @@
  }
 
  .separator {
+   margin-left: 2px;
+   margin-right: 2px;
    width: 1px;
    height: 100%;
    background: currentColor;
