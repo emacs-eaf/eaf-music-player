@@ -93,6 +93,7 @@
        window.pyobject.vue_update_playlist_tracks(playlistId);
 
        this.$nextTick(function() {
+         this.scrollToCurrentTrack();
          this.$refs.cloudplaylist.children[this.cloudCurrentPlaylistIndex]?.scrollIntoViewIfNeeded(false);
        })
      },
