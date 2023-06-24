@@ -41,6 +41,9 @@
      // playlist
      window.playlistPrev = this.playlistPrev;
      window.playlistNext = this.playlistNext;
+     window.scrollPlaylistUp = this.scrollPlaylistUp;
+     window.scrollPlaylistDown = this.scrollPlaylistDown;
+
    },
    components: {
      LocalPlaylist,
@@ -135,6 +138,18 @@
      playlistNext() {
        if (!this.isLocalDisplaySource) {
          this.$refs.cloud.playlistNext();
+       }
+     },
+
+     scrollPlaylistUp() {
+       if (!this.isLocalDisplaySource) {
+         this.$refs.cloud.scrollPlaylistUp();
+       }
+     },
+
+     scrollPlaylistDown() {
+       if (!this.isLocalDisplaySource) {
+         this.$refs.cloud.scrollPlaylistDown();
        }
      }
 

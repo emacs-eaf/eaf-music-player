@@ -69,7 +69,15 @@
 
      playlistNext() {
        this.$refs.playlist.playlistNext();
-     }
+     },
+
+     scrollPlaylistUp() {
+       this.$refs.playlist.scrollPlaylistUp();
+     },
+
+     scrollPlaylistDown() {
+       this.$refs.playlist.scrollPlaylistDown();
+     },
    },
    props: {
      backgroundColor: String,

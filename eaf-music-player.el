@@ -118,6 +118,8 @@
     ("r" . "refresh_cloud_tracks")
     ("p" . "js_playlist_prev")
     ("n" . "js_playlist_next")
+    ("C-S-n" . "js_scroll_playlist_up")
+    ("C-S-p" . "js_scroll_playlist_down")
     )
   "The keybinding of EAF Music Player."
   :type 'cons)

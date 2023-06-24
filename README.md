@@ -62,5 +62,5 @@ Music Player application for the [Emacs Application Framework](https://github.co
 | `r` | refresh_cloud_tracks |
 | `p` | playlist_prev |
 | `n` | playlist_next |
-
-
+| `C-S-n` | js_scroll_playlist_up |
+| `C-S-p` | js_scroll_playlist_down |

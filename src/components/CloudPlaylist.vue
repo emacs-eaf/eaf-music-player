@@ -121,6 +121,14 @@
        }
      },
 
+     scrollPlaylistUp() {
+       this.$refs.cloudplaylist.scrollTop += 30;
+     },
+
+     scrollPlaylistDown() {
+       this.$refs.cloudplaylist.scrollTop -= 30;
+     },
+
      padNumber(num, size) {
        var s = num + "";
        while (s.length < size) s = "0" + s;
