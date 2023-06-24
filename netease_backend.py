@@ -215,6 +215,8 @@ class NeteaseBackend:
         song_id = int(song_id)
 
         info = self.get_track_info(song_id)
+        if not info:
+            return
         mp3_name = f"{info['artist']}_{info['name']}.mp3"
         cache_mp3_file = self.get_music_cache_file(mp3_name)
         if os.path.exists(cache_mp3_file):
