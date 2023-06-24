@@ -85,6 +85,7 @@
      },
 
      switchPlaylist(index) {
+       this.$store.commit('setPlaySource', 'cloud');
        var playlistId = this.cloudPlaylists[index].id;
        this.$store.commit('updateCloudSwitchingPlaylist', true);
        this.$store.commit('updateCloudCurrentPlaylistIndex', index);

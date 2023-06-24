@@ -151,8 +151,9 @@ class AppBuffer(BrowserBuffer):
                                                            self.get_current_track_unikey())
 
         track_infos = self.get_current_play_track_info()
-        self.fetch_cover(track_infos)
-        self.fetch_lyric(track_infos)
+        if track_infos:
+            self.fetch_cover(track_infos)
+            self.fetch_lyric(track_infos)
 
     @QtCore.pyqtSlot(str)
     def vue_update_playlist_tracks(self, playlist_id: str):
@@ -176,6 +177,8 @@ class AppBuffer(BrowserBuffer):
             infos = self.local_tracks[self.play_track_key]
         else:
             infos = self._netease_backend.get_track_info(self.play_track_key)
+        if not infos:
+            return None
         infos['unikey'] = track_unikey
         return infos
 

@@ -200,7 +200,7 @@ class NeteaseBackend:
 
     def get_track_info(self, song_id):
         song_id = int(song_id)
-        return self._track_infos[song_id]
+        return self._track_infos.get(song_id, None)
 
     def get_playlist_songs(self, playlist_id):
         playlist_id = int(playlist_id)
@@ -268,7 +268,8 @@ class NeteaseBackend:
             time.sleep(1.0)
 
     def _cache_quality_mp3(self, song_id: int, mp3_name: str):
-        self._cache_queue.put((song_id, mp3_name))
+        if self._current_playlist_id == self._like_playlist_id:
+            self._cache_queue.put((song_id, mp3_name))
 
     def _start_cache_mp3_task(self):
         while True:
