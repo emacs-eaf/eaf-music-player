@@ -200,13 +200,14 @@
  }
 
  .cloud-music-list {
+   min-width: 300px;
+   max-width: 300px;
    height: 100%;
    overflow: scroll;
    box-shadow: 1px 0 1px;
  }
 
  .music-list-item {
-   width: 300px;
    padding-left: 10px;
    padding-right: 10px;
    padding-top: 5px;
