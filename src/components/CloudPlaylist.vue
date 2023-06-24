@@ -1,6 +1,6 @@
 <template>
   <div class="cloud-music">
-    <div class="cloud-music-list">
+    <div ref="cloudplaylist" class="cloud-music-list">
       <div class="music-list-item eaf-music-player-item"
         v-for="(item, index) in cloudPlaylists" :key="item.id"
         @click="switchPlaylist(index)"
@@ -89,6 +89,10 @@
        this.$store.commit('updateCloudSwitchingPlaylist', true);
        this.$store.commit('updateCloudCurrentPlaylistIndex', index);
        window.pyobject.vue_update_playlist_tracks(playlistId);
+
+       this.$nextTick(function() {
+         this.$refs.cloudplaylist.children[index]?.scrollIntoViewIfNeeded(false);
+       })
      },
 
      playlistPrev() {
@@ -192,17 +196,16 @@
    height: 100%;
    display: flex;
    flex-direction: row;
-   overflow: scroll;
-
  }
 
  .cloud-music-list {
-   flex-basis: 12%;
-   box-shadow: 3px 0 5px rgba(30, 30, 30, 0.40);
+   height: 100%;
+   overflow: scroll;
+   box-shadow: 1px 0 1px;
  }
 
  .music-list-item {
-   width: 200px;
+   width: 300px;
    padding-left: 10px;
    padding-right: 10px;
    padding-top: 5px;
