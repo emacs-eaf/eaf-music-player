@@ -327,13 +327,16 @@
          track = this.cloudTrackInfos[index];
          this.$store.commit('updateCloudCurrentTrackIndex', index);
        }
-       this.$store.commit('updatePlayTrackInfo', track);
+       if (track !== undefined) {
+         this.$store.commit('updatePlayTrackInfo', track);
+         this.currentCover = "";
+         window.pyobject.vue_update_current_track(this.playSource,
+                                                  this.currentPlayTrackKey);
 
-       this.currentCover = "";
-       window.pyobject.vue_update_current_track(this.playSource,
-                                                this.currentPlayTrackKey);
-       this.playAudioSource(track.path);
-
+         this.playAudioSource(track.path);
+       } else {
+         console.log(`play track index: ${index} failed`);
+       }
      },
 
      playPrev() {
