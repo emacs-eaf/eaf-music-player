@@ -50,14 +50,22 @@ class NeteaseBackend:
         self._buffer = buffer
         self._api: NeteaseMusicApi = music_service.get_provider('netease')
         self._thread_caches = []
+
+        # current tracks
         self._track_infos = {}
+
+        # playlists
+        self._like_playlist_id = 0
+        self._current_playlist_id = 0
+        self._user_playlists = []
+
         self._cache_queue = queue.Queue()
         self._logined = False
 
         self.music_cache_dir = get_emacs_var("eaf-music-cache-dir")
         if self.music_cache_dir == "":
             self.music_cache_dir = os.path.join(utils.get_cloud_cache_dir(), "music")
-        logger.debug(f'music cache dir: {self.music_cache_dir}')
+            logger.debug(f'music cache dir: {self.music_cache_dir}')
 
     def get_music_cache_file(self, name):
         if not os.path.exists(self.music_cache_dir):
@@ -88,52 +96,119 @@ class NeteaseBackend:
         self._exec_js(js_method, val)
 
     def init_app(self):
+        self._load_playlists()
         self._load_like_songs()
 
         self._thread_post(self._api.is_login, self._handle_user_login)
         self._thread_post(self._start_cache_mp3_task)
 
     def _handle_user_login(self, is_login, _):
-        self._exec_js('cloudUpdateLoginState', is_login)
-
         logger.debug(f'login state: {is_login}')
+        self._exec_js('cloudUpdateLoginState', is_login)
         if is_login:
             self._logined = True
-            logger.debug('is logined, start refresh like songs')
-            self.refresh_like_songs()
+            logger.debug('is logined, start refresh playlist')
+            self.refresh_playlists()
         else:
             logger.debug('is not login, start get login qrcode')
             self._login_qr_create()
 
+    def _load_playlists(self) -> bool:
+        db_file = utils.get_db_cache_file('playlists.json')
+        if os.path.isfile(db_file):
+            with open(db_file, 'r') as fp:
+                data = fp.read()
+            playlists = json.loads(data)
+            self._current_playlist_id = playlists[0]['id']
+            self._like_playlist_id = self._current_playlist_id
+            self._user_playlists = playlists
+            self._exec_js('cloudUpdatePlaylists', playlists)
+            return True
+        return False
+
     def _load_like_songs(self):
-        db_file = utils.get_db_cache_file('tracks.json')
+        self._load_playlist_songs('tracks.json')
+
+    def _load_playlist_songs(self, filename: str):
+        db_file = utils.get_db_cache_file(filename)
         if os.path.isfile(db_file):
             with open(db_file, 'r') as fp:
                 data = fp.read()
             songs = json.loads(data)
-            self._track_infos = {x['id']: x for x in songs }
+            self._track_infos = { x['id']: x for x in songs }
             self._exec_js('cloudUpdateTrackInfos', songs)
             logger.debug(f'load songs from cache: {os.path.basename(db_file)}')
 
+    def _save_cache(self, filename: str, data: Any):
+        json_data = json.dumps(data)
+        with open(utils.get_db_cache_file(filename), 'w') as fp:
+            fp.write(json_data)
+
     def _save_like_songs(self, songs):
-        data = json.dumps(songs)
-        with open(utils.get_db_cache_file('tracks.json'), 'w') as fp:
-            fp.write(data)
+        self._save_cache('tracks.json', songs)
 
-    def refresh_like_songs(self):
+    def _save_playlists(self, playlists):
+        self._save_cache('playlists.json', playlists)
+
+    def _save_playlist_songs(self, playlist_id, songs):
+        self._save_cache(f'tracks_{playlist_id}.json', songs)
+
+    def refresh_playlists(self):
         if not self._logined:
-            logger.debug('refresh like songs require login')
+            logger.debug('refresh playlists require login')
             return
-        self._js_post(self._api.get_like_songs, 'cloudUpdateTrackInfos', self._handle_like_songs)
+        self._js_post(self._api.get_user_playlist, 'cloudUpdatePlaylists', self._handle_playlists)
 
-    def _handle_like_songs(self, songs, _):
-        self._save_like_songs(songs)
-        self._track_infos = {x['id']: x for x in songs }
-        return songs
+    def _handle_playlists(self, playlists, _):
+        if not playlists:
+            logger.debug('refresh playlist failed')
+            return
+
+        self._user_playlists = playlists
+        logger.debug(f'refresh playlists result, cout: {len(playlists)}')
+        self._save_playlists(playlists)
+        self._like_playlist_id = playlists[0]['id']
+        if not self._current_playlist_id:
+            self._current_playlist_id = self._like_playlist_id
+
+        logger.debug(f'refresh current playlist: {self._current_playlist_id} songs')
+        self.refresh_playlist_songs(self._current_playlist_id)
+        return playlists
+
+    def refresh_playlist_songs(self, playlist_id: int):
+        logger.debug(f'start refresh playlist songs, playlist: {playlist_id}')
+        self._thread_post(self._api.get_playlist_songs,
+                          self._handle_playlist_songs,
+                          playlist_id,
+                          playlist_id)
+
+    def _handle_playlist_songs(self, songs, playlist_id):
+        if not songs:
+            logger.error(f'refresh playlist: {playlist_id} failed')
+            return
+
+        logger.debug(f'refresh playlist: {playlist_id} success, cache it')
+        if playlist_id == self._like_playlist_id:
+            self._save_like_songs(songs)
+        else:
+            self._save_playlist_songs(playlist_id, songs)
+
+        if self._current_playlist_id == playlist_id:
+            logger.debug(f'update current playlist track infos, playlist: {playlist_id}')
+            self._track_infos = {x['id']: x for x in songs }
+            self._exec_js('cloudUpdateTrackInfos', songs)
 
     def get_track_info(self, song_id):
         song_id = int(song_id)
         return self._track_infos[song_id]
+
+    def get_playlist_songs(self, playlist_id):
+        playlist_id = int(playlist_id)
+        self._current_playlist_id = playlist_id
+        logger.debug(f'try load playlist: {playlist_id} songs from cache')
+        if not self._load_playlist_songs(f'tracks_{playlist_id}.json'):
+            logger.debug(f'load playlist: {playlist_id} cache failed, start fetch from net')
+            self.refresh_playlist_songs(playlist_id)
 
     def fetch_track_audio_source(self, song_id, track_unikey):
         logger.debug(f'fetch track audio source, song_id: {song_id}')
@@ -170,8 +245,8 @@ class NeteaseBackend:
         logger.info('notify user login success')
         self._exec_js('cloudUpdateLoginState', True)
 
-        logger.info('get like songs')
-        self.refresh_like_songs()
+        logger.info('start refresh playlists')
+        self.refresh_playlists()
 
     def _loop_check_qrcode(self):
         while True:

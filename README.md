@@ -60,4 +60,7 @@ Music Player application for the [Emacs Application Framework](https://github.co
 | `s` | show_tag_info |
 | `T` | convert_tag_coding |
 | `r` | refresh_cloud_tracks |
+| `p` | playlist_prev |
+| `n` | playlist_next |
+
 

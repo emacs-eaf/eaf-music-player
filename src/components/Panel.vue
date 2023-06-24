@@ -99,6 +99,7 @@
        "localTrackInfos",
        "cloudCurrentTrackIndex",
        "cloudTrackInfos",
+       "cloudSwitchingPlaylist",
      ]),
      ...mapGetters([
        "currentPlayTrackKey",
@@ -147,6 +148,7 @@
      window.cloudUpdateLoginState = this.cloudUpdateLoginState;
      window.cloudUpdateLoginQr = this.cloudUpdateLoginQr;
      window.cloudUpdateTrackAudioSource = this.cloudUpdateTrackAudioSource;
+     window.cloudUpdatePlaylists = this.cloudUpdatePlaylists;
 
      this.audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
@@ -395,6 +397,10 @@
 
      cloudUpdateTrackInfos(track_infos) {
        this.$store.commit("updateCloudTrackInfos", track_infos);
+       if (this.cloudSwitchingPlaylist) {
+         this.playTrack(0);
+         this.$store.commit("updateCloudSwitchingPlaylist", false);
+       }
      },
 
      cloudUpdateLoginQr(val) {
@@ -411,7 +417,13 @@
        } else {
          this.playNext();
        }
+     },
+
+     cloudUpdatePlaylists(playlists) {
+       console.log(`upldae cloud playlists, count: ${playlists.length}`);
+       this.$store.commit('updateCloudPlaylists', playlists);
      }
+
    }
  }
 </script>

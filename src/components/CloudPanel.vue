@@ -61,6 +61,14 @@
 
      scrollToBottom() {
        this.$refs.playlist.scrollToBottom();
+     },
+
+     playlistPrev() {
+       this.$refs.playlist.playlistPrev();
+     },
+
+     playlistNext() {
+       this.$refs.playlist.playlistNext();
      }
    },
    props: {

@@ -1,20 +1,35 @@
 <template>
-  <div ref="playlist" class="playlist">
-    <div class="item eaf-music-player-item"
-      v-for="(item, index) in cloudTrackInfos" :key="item.id"
-      @click="playItem(index)"
-      :style="{ 'background': itemBackgroundColor(index), 'color': itemForegroundColor(index) }">
-      <div class="item-index">
-        {{ padNumber(index + 1, cloudNumberWidth) }}
+  <div class="cloud-music">
+    <div class="cloud-music-list">
+      <div class="music-list-item eaf-music-player-item"
+        v-for="(item, index) in cloudPlaylists" :key="item.id"
+        @click="switchPlaylist(index)"
+        :style="{ 'background': playlistBackgroundColor(index), 'color': playlistForegroundColor(index) }">
+        <div class="playlist-name">
+          {{ item.name }}
+        </div>
+        <div class="playlist-info">
+          {{ item.track_count }}首 by: {{ item.creator }}
+        </div>
       </div>
-      <div class="item-name">
-        {{ item.name }}
-      </div>
-      <div class="item-artist">
-        {{ item.artist }}
-      </div>
-      <div class="item-album">
-        {{ item.album }}
+    </div>
+    <div ref="playlist" class="playlist">
+      <div class="item eaf-music-player-item"
+        v-for="(item, index) in cloudTrackInfos" :key="item.id"
+        @click="playItem(index)"
+        :style="{ 'background': itemBackgroundColor(index), 'color': itemForegroundColor(index) }">
+        <div class="item-index">
+          {{ padNumber(index + 1, cloudNumberWidth) }}
+        </div>
+        <div class="item-name">
+          {{ item.name }}
+        </div>
+        <div class="item-artist">
+          {{ item.artist }}
+        </div>
+        <div class="item-album">
+          {{ item.album }}
+        </div>
       </div>
     </div>
   </div>
@@ -34,6 +49,8 @@
        "cloudCurrentTrackIndex",
        "cloudNumberWidth",
        "cloudTrackInfos",
+       "cloudPlaylists",
+       "cloudCurrentPlaylistIndex",
        "playSource",
      ]),
      ...mapGetters([
@@ -67,10 +84,57 @@
        this.$root.$emit("playTrack", index);
      },
 
+     switchPlaylist(index) {
+       var playlistId = this.cloudPlaylists[index].id;
+       this.$store.commit('updateCloudSwitchingPlaylist', true);
+       this.$store.commit('updateCloudCurrentPlaylistIndex', index);
+       window.pyobject.vue_update_playlist_tracks(playlistId);
+     },
+
+     playlistPrev() {
+       var index;
+       if (this.cloudCurrentPlaylistIndex > 0) {
+         index = this.cloudCurrentPlaylistIndex - 1;
+       } else {
+         index = this.cloudPlaylists.length - 1;
+       }
+       if (index !== undefined) {
+         this.switchPlaylist(index);
+       }
+     },
+
+     playlistNext() {
+       var index;
+       if (this.cloudCurrentPlaylistIndex < this.cloudPlaylists.length - 1) {
+         index = this.cloudCurrentPlaylistIndex + 1;
+       } else {
+         index = 0;
+       }
+       if (index !== undefined) {
+         this.switchPlaylist(index);
+       }
+     },
+
      padNumber(num, size) {
        var s = num + "";
        while (s.length < size) s = "0" + s;
        return s;
+     },
+
+     playlistBackgroundColor(index) {
+       if (index == this.cloudCurrentPlaylistIndex) {
+         return this.foregroundColor;
+       } else {
+         return this.backgroundColor;
+       }
+     },
+
+     playlistForegroundColor(index) {
+       if (index == this.cloudCurrentPlaylistIndex) {
+         return this.backgroundColor;
+       } else {
+         return this.foregroundColor;
+       }
      },
 
      itemBackgroundColor(index) {
@@ -123,8 +187,43 @@
 </script>
 
 <style scoped>
- .playlist {
+ .cloud-music {
    width: 100%;
+   height: 100%;
+   display: flex;
+   flex-direction: row;
+   overflow: scroll;
+
+ }
+
+ .cloud-music-list {
+   flex-basis: 12%;
+   box-shadow: 3px 0 5px rgba(30, 30, 30, 0.40);
+ }
+
+ .music-list-item {
+   width: 200px;
+   padding-left: 10px;
+   padding-right: 10px;
+   padding-top: 5px;
+   padding-bottom: 5px;
+   user-select: none;
+ }
+
+ .playlist-name {
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+   font-size: 15px;
+ }
+
+ .playlist-info {
+   font-size: 12px;
+ }
+
+ .playlist {
+   flex-grow: 1;
+   margin-left: 8px;
    height: 100%;
 
    white-space: nowrap;

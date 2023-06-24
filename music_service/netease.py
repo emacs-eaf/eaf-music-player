@@ -207,6 +207,7 @@ class NeteaseMusicApi(BaseProvider):
 
     def is_login(self) -> bool:
         self.user_id = self.get_user_id()
+        logger.debug(f'user id: {self.user_id}')
         return bool(self.user_id)
 
     def get_user_id(self) -> int:
@@ -233,29 +234,14 @@ class NeteaseMusicApi(BaseProvider):
     def login_qr_check(self):
         return self.api_login_qr_check(self._unikey)
 
-    def get_like_songs(self) -> Optional[List]:
-        uid = self.get_user_id()
-        self.user_id = uid
-        if not uid:
-            logger.error('not login')
-            return None
-        playlist_resp = self.api_user_playlist(uid)
-        playlist = playlist_resp.get('playlist', None)
-        if not playlist:
-            logger.error('get playlist failed or playlist is empty')
-            return None
-        pid = playlist[0].get('id', 0)
-        pname = playlist[0].get('name', '')
-        if not pid:
-            logger.error('playlist id error')
-            return None
-        detail_resp = self.api_playlist_detail(pid)
+    def get_playlist_songs(self, playlist_id: int) -> Optional[List]:
+        detail_resp = self.api_playlist_detail(playlist_id)
         track_id_infos = detail_resp['playlist']['trackIds']
         song_ids = [track['id'] for track in track_id_infos]
         song_detail_resp = self.api_song_detail(song_ids)
         songs = song_detail_resp.get('songs', None)
         if not songs:
-            logger.error(f'the like playlist: {pname} get songs failed')
+            logger.error(f'the like playlist: {playlist_id} get songs failed')
             return None
 
         song_list = []
@@ -268,6 +254,42 @@ class NeteaseMusicApi(BaseProvider):
             }
             song_list.append(song_info)
         return song_list
+
+    def get_user_playlist(self):
+        if not self.user_id:
+            self.user_id = self.get_user_id()
+        if not self.get_user_id:
+            logger.error('get user id failed')
+            return
+        limit = 30
+        offset = 0
+        new_playlist = []
+        while True:
+            try:
+                resp = self.api_user_playlist(self.user_id, limit=limit, offset=offset)
+                playlist = resp.get('playlist', None)
+                if not playlist:
+                    break
+                for item in playlist:
+                    new_item = {
+                        'id': item['id'],
+                        'name': item['name'],
+                        'cover_img_url': item.get('coverImgUrl', ''),
+                        'creator': item.get('creator', {}).get('nickname', ''),
+                        'track_count': item['trackCount']
+                    }
+                    new_playlist.append(new_item)
+
+                more = resp.get('more', False)
+                if not more:
+                    break
+                offset += limit
+            except Exception as e:
+                logger.exception(f'get user playlist error: {e}')
+                break
+        if new_playlist:
+            new_playlist[0]['name'] = '我喜欢的音乐'
+        return new_playlist
 
     def get_song_url(self, song_id: int):
         result = self.api_song_url_v1(song_id)

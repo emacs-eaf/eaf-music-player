@@ -27,6 +27,11 @@ const store = new Vuex.Store({
         cloudNumberWidth: 0,
         cloudTrackInfos: [],
 
+        // cloud playlists
+        cloudPlaylists: [],
+        cloudCurrentPlaylistIndex: 0,
+        cloudSwitchingPlaylist: false,
+
         // display
         displaySource: 'local',
     },
@@ -143,6 +148,31 @@ const store = new Vuex.Store({
                 }
             }
         },
+
+        // cloud playlists
+        updateCloudPlaylists(state, infos) {
+            var currentPlaylistId = 0;
+            if (state.cloudPlaylists.length > 0) {
+                currentPlaylistId = state.cloudPlaylists[state.cloudCurrentPlaylistIndex].id;
+            }
+            state.cloudPlaylists = infos;
+            if (currentPlaylistId > 0) {
+                var playlistIds = state.cloudPlaylists.map(function (playlist) { return playlist.id });
+                var currentIndex = playlistIds.indexOf(currentPlaylistId)
+                if (currentIndex !== -1) {
+                    state.cloudCurrentPlaylistIndex = currentIndex;
+                }
+            }
+        },
+
+        updateCloudSwitchingPlaylist(state, val) {
+            state.cloudSwitchingPlaylist = val;
+        },
+
+        updateCloudCurrentPlaylistIndex(state, index) {
+            state.cloudCurrentPlaylistIndex = index;
+        },
+
         updateCloudLoginQr(state, val) {
             state.cloudLoginQr = val;
         },

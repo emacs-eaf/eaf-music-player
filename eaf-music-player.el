@@ -116,6 +116,8 @@
     ("s" . "show_tag_info")
     ("T" . "convert_tag_coding")
     ("r" . "refresh_cloud_tracks")
+    ("p" . "js_playlist_prev")
+    ("n" . "js_playlist_next")
     )
   "The keybinding of EAF Music Player."
   :type 'cons)

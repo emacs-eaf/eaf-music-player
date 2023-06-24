@@ -37,6 +37,10 @@
      window.scrollDownPage = this.scrollDownPage;
      window.scrollToBegin = this.scrollToBegin;
      window.scrollToBottom = this.scrollToBottom;
+
+     // playlist
+     window.playlistPrev = this.playlistPrev;
+     window.playlistNext = this.playlistNext;
    },
    components: {
      LocalPlaylist,
@@ -120,7 +124,20 @@
        } else {
          this.$refs.cloud.scrollToBottom();
        }
+     },
+
+     playlistPrev() {
+       if (!this.isLocalDisplaySource) {
+         this.$refs.cloud.playlistPrev();
+       }
+     },
+
+     playlistNext() {
+       if (!this.isLocalDisplaySource) {
+         this.$refs.cloud.playlistNext();
+       }
      }
+
    }
  }
 </script>

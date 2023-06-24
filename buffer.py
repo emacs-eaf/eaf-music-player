@@ -154,6 +154,12 @@ class AppBuffer(BrowserBuffer):
         self.fetch_cover(track_infos)
         self.fetch_lyric(track_infos)
 
+    @QtCore.pyqtSlot(str)
+    def vue_update_playlist_tracks(self, playlist_id: str):
+        playlist_id = int(playlist_id)
+        log.debug(f'start update current playlist: {playlist_id} tracks')
+        self._netease_backend.get_playlist_songs(playlist_id)
+
     def get_current_track_unikey(self):
         return f'{self.play_source}_{self.play_track_key}'
 
@@ -321,7 +327,7 @@ class AppBuffer(BrowserBuffer):
 
     def refresh_cloud_tracks(self):
         log.debug('refresh cloud tracks')
-        self._netease_backend.refresh_like_songs()
+        self._netease_backend.refresh_playlists()
 
     def edit_tag_info(self):
         if not self.is_local_source():
