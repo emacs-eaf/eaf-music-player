@@ -13,6 +13,7 @@
         </div>
       </div>
     </div>
+    <div class="separator"/>
     <div ref="playlist" class="playlist">
       <div class="item eaf-music-player-item"
         v-for="(item, index) in cloudTrackInfos" :key="item.id"
@@ -204,7 +205,6 @@
    max-width: 300px;
    height: 100%;
    overflow: scroll;
-   box-shadow: 1px 0 1px;
  }
 
  .music-list-item {
@@ -213,6 +213,12 @@
    padding-top: 5px;
    padding-bottom: 5px;
    user-select: none;
+ }
+
+ .separator {
+   width: 1px;
+   height: 100%;
+   background: currentColor;
  }
 
  .playlist-name {
@@ -228,7 +234,6 @@
 
  .playlist {
    flex-grow: 1;
-   margin-left: 8px;
    height: 100%;
 
    white-space: nowrap;
