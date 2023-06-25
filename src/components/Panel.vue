@@ -457,7 +457,7 @@
      },
 
      cloudUpdatePlaylists(playlists) {
-       console.log(`upldae cloud playlists, count: ${playlists.length}`);
+       console.log(`update cloud playlists, count: ${playlists.length}`);
        this.$store.commit('updateCloudPlaylists', playlists);
      }
 
