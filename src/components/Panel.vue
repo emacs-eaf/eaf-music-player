@@ -164,7 +164,17 @@
        that.currentTime = that.formatTime(that.$refs.player.currentTime);
        that.duration = that.formatTime(that.$refs.player.duration);
      });
+     this.$refs.player.addEventListener("error", this.handlePlayError);
 
+     // fix `net::ERR_NAME_NOT_RESOLVED` error
+     // https://stackoverflow.com/questions/36512573/catching-neterr-name-not-resolved-for-fixing-bad-img-links
+     window.addEventListener('error', function(e) {
+       var sourceId = e.target.parentNode.id;
+       if (sourceId == "audio") {
+          console.log('audio player error caught, try again');
+          that.playAgain();
+       }
+     }, true);
    },
    methods: {
      updateCover(url) {
@@ -245,6 +255,33 @@
          this.playRandom();
        } else if (this.playOrderIcon === "repeat") {
          this.playAgain();
+       }
+     },
+
+     handlePlayError() {
+       // https://developer.mozilla.org/en-US/docs/Web/API/MediaError/message
+       var errcode = this.$refs.player.error.code;
+       console.log(`handle player error, code: ${errcode}`);
+       switch(errcode) {
+         case MediaError.MEDIA_ERR_ABORTED: {
+           console.log('user abort download audio source');
+           break;
+         }
+         case MediaError.MEDIA_ERR_NETWORK: {
+           console.log('a network error occurred and the audio could not be downloaded');
+           this.playAgain();
+           break;
+         }
+         case MediaError.MEDIA_ERR_DECODE: {
+           console.log("Browser can't decode audio although it's downloaded");
+           this.playNext();
+           break;
+         }
+         case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: {
+           console.log("The audio format is not supported by the browser");
+           this.playNext();
+           break;
+         }
        }
      },
 

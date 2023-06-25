@@ -283,9 +283,6 @@ class AppBuffer(BrowserBuffer):
                 tags = self.get_audio_taginfos(file)
                 tags['name'] = tags['title']
                 del tags['title']
-                if 'id' not in tags:
-                    tags['id'] = 0
-                
                 infos.append(tags)
 
         infos.sort(key=cmp_to_key(self.music_compare))
