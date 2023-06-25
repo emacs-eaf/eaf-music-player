@@ -5,8 +5,11 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
     state: {
+        // settings
+        settings: {},
+
         // local
-        localCurrentTrackIndex: 0,
+        localCurrentTrackIndex: -1,
         localNumberWidth: 0,
         localTrackInfos: [],
 
@@ -55,14 +58,31 @@ const store = new Vuex.Store({
         }
     },
     mutations: {
+        // settings
+        updateSettings(state, settings) {
+            state.settings = settings;
+
+            // set display source
+            state.displaySource = settings.music_source;
+            state.playSource = settings.music_source;
+        },
+
         // local
         updateLocalCurrentTrackIndex(state, index) {
             state.localCurrentTrackIndex = index;
         },
+
         updateLocalTrackInfos(state, infos) {
             state.localTrackInfos = infos;
             state.localNumberWidth = state.localTrackInfos.length.toString().length;
+
+            // load last play track
+            if (state.settings.local_track_path) {
+                var tracks = state.localTrackInfos.map(function (track) { return track.path });
+                state.localCurrentTrackIndex = tracks.indexOf(state.settings.local_track_path);
+            }
         },
+
         updateLocalTrackTagInfo(state, payload) {
             var tracks = state.localTrackInfos.map(function (track) { return track.path });
             var index = tracks.indexOf(payload.track);
@@ -132,10 +152,16 @@ const store = new Vuex.Store({
         updateCloudCurrentTrackIndex(state, index) {
             state.cloudCurrentTrackIndex = index;
         },
+
         updateCloudTrackInfos(state, infos) {
             var currentTrackId = 0;
-            if (state.cloudTrackInfos.length > 0 && state.cloudCurrentTrackIndex !== -1) {
-                currentTrackId = state.cloudTrackInfos[state.cloudCurrentTrackIndex].id;
+            if (state.cloudTrackInfos.length > 0) {
+                if (state.cloudCurrentTrackIndex !== -1) {
+                    currentTrackId = state.cloudTrackInfos[state.cloudCurrentTrackIndex].id;
+                }
+            } else {
+                // load config
+                currentTrackId = state.settings.cloud_track_id;
             }
             state.cloudTrackInfos = infos;
             state.cloudNumberWidth = state.cloudTrackInfos.length.toString().length;
@@ -151,10 +177,13 @@ const store = new Vuex.Store({
 
         // cloud playlists
         updateCloudPlaylists(state, infos) {
-            var currentPlaylistId = 0;
+            var currentPlaylistId;
             if (state.cloudPlaylists.length > 0) {
                 currentPlaylistId = state.cloudPlaylists[state.cloudCurrentPlaylistIndex].id;
+            } else {
+                currentPlaylistId = state.settings.cloud_playlist_id;
             }
+
             state.cloudPlaylists = infos;
             if (currentPlaylistId > 0) {
                 var playlistIds = state.cloudPlaylists.map(function (playlist) { return playlist.id });

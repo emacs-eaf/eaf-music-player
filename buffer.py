@@ -41,10 +41,11 @@ except ImportError:
     EasyID3 = None
 
 sys.path.append(os.path.dirname(__file__))
+from music_config import MusicConfig
 from netease_backend import NeteaseBackend
 
 from music_service import music_service
-from music_service.utils import get_logger
+from music_service.utils import get_config_cache_file, get_logger
 
 log = get_logger('AppBuffer')
 
@@ -57,9 +58,24 @@ class AppBuffer(BrowserBuffer):
     def __init__(self, buffer_id, url, arguments):
         BrowserBuffer.__init__(self, buffer_id, url, arguments, False)
 
-        self.play_source = PlaySourceType.Local
-        self.play_track_key = ''
+        # config
+        self._config = MusicConfig(get_config_cache_file('settings.json'))
 
+        # compatible with eaf-open-cloud-music command
+        if url == 'cloud':
+            self._config.music_source = 'cloud'
+        self.play_source = self._config.music_source
+
+        # compatible eaf-music-play-order emacs conf
+        user_save_mode = self._config.play_mode
+        if not user_save_mode:
+            emacs_play_mode = get_emacs_var("eaf-music-play-order")
+            if emacs_play_mode:
+                self._config.play_mode = eval_in_emacs
+            else:
+                self._config.play_mode = 'list'
+
+        self.play_track_key = ''
         self.local_tracks = {}
         self.thread_queue = []
 
@@ -104,14 +120,12 @@ class AppBuffer(BrowserBuffer):
 
     def init_vars(self):
         self.buffer_widget.eval_js_function(
-            '''initPlaylist''',
-            self.url,
+            'initPlaylist',
             self.theme_background_color,
             self.theme_foreground_color)
 
         self.buffer_widget.eval_js_function(
-            '''initPanel''',
-            get_emacs_var("eaf-music-play-order"),
+            'initPanel',
             self.panel_background_color,
             self.theme_foreground_color,
             self.icon_cache_dir,
@@ -121,6 +135,9 @@ class AppBuffer(BrowserBuffer):
         )
 
     def init_app(self):
+        # init settings
+        self.buffer_widget.eval_js_function('loadSettings', self._config.to_dict())
+
         self.init_vars()
 
         files = []
@@ -135,10 +152,14 @@ class AppBuffer(BrowserBuffer):
         self.local_tracks = {x['path']:x for x in track_list}
         self.buffer_widget.eval_js_function('addLocalTrackInfos', track_list)
 
-        self._netease_backend.init_app()
+        self._netease_backend.init_app(self._config.cloud_playlist_id)
 
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path
+
+    @QtCore.pyqtSlot(str)
+    def vue_update_play_mode(self, mode: str):
+        self._config.play_mode = mode
 
     @QtCore.pyqtSlot(str, str)
     def vue_update_current_track(self, play_source, play_track_key):
@@ -155,11 +176,21 @@ class AppBuffer(BrowserBuffer):
             self.fetch_cover(track_infos)
             self.fetch_lyric(track_infos)
 
+            # save config
+            self._config.music_source = play_source
+            if self.is_local_source():
+                self._config.local_track_path = play_track_key
+            else:
+                self._config.cloud_track_id = int(play_track_key)
+
     @QtCore.pyqtSlot(str)
     def vue_update_playlist_tracks(self, playlist_id: str):
         playlist_id = int(playlist_id)
         log.debug(f'start update current playlist: {playlist_id} tracks')
         self._netease_backend.get_playlist_songs(playlist_id)
+
+        # save config
+        self._config.cloud_playlist_id = playlist_id
 
     def get_current_track_unikey(self):
         return f'{self.play_source}_{self.play_track_key}'

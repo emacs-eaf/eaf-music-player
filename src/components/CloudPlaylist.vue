@@ -71,7 +71,11 @@
        handler: function(val, oldVal) {
          /* Play music when first time load cloud list. */
          if (oldVal.length === 0 && val.length > 0) {
-           this.playItem(0);
+           if (this.cloudCurrentTrackIndex !== -1) {
+             this.playItem(this.cloudCurrentTrackIndex);
+           } else {
+             this.playItem(0);
+           }
          }
        }
      }

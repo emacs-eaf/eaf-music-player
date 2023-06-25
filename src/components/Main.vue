@@ -55,13 +55,8 @@
      window.changePanel = this.changePanel;
    },
    methods: {
-     initPlaylist(initDir, backgroundColor, foregroundColor) {
-       if (initDir == "cloud") {
-         this.$store.commit('updateDisplaySource', 'cloud');
-       } else {
-         this.$store.commit('updateDisplaySource', 'local');
-       }
 
+     initPlaylist(backgroundColor, foregroundColor) {
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
      },

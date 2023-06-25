@@ -95,9 +95,18 @@ class NeteaseBackend:
     def _post_exec_js(self, js_method, val):
         self._exec_js(js_method, val)
 
-    def init_app(self):
-        self._load_playlists()
-        self._load_like_songs()
+    def init_app(self, default_playlist_id: int):
+        if self._load_playlists():
+            load_state = False
+            if default_playlist_id == self._like_playlist_id:
+                load_state = self._load_like_songs()
+            else:
+                load_state = self._load_playlist_songs(f'tracks_{default_playlist_id}.json')
+
+            if load_state:
+                self._current_playlist_id = default_playlist_id
+        else:
+            self._load_like_songs()
 
         self._thread_post(self._api.is_login, self._handle_user_login)
         self._thread_post(self._start_cache_mp3_task)
@@ -126,10 +135,10 @@ class NeteaseBackend:
             return True
         return False
 
-    def _load_like_songs(self):
-        self._load_playlist_songs('tracks.json')
+    def _load_like_songs(self) -> bool:
+        return self._load_playlist_songs('tracks.json')
 
-    def _load_playlist_songs(self, filename: str):
+    def _load_playlist_songs(self, filename: str) -> bool:
         db_file = utils.get_db_cache_file(filename)
         if os.path.isfile(db_file):
             with open(db_file, 'r') as fp:
@@ -138,6 +147,8 @@ class NeteaseBackend:
             self._track_infos = { x['id']: x for x in songs }
             self._exec_js('cloudUpdateTrackInfos', songs)
             logger.debug(f'load songs from cache: {os.path.basename(db_file)}')
+            return True
+        return False
 
     def _save_cache(self, filename: str, data: Any):
         json_data = json.dumps(data)

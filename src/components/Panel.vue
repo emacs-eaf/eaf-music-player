@@ -100,6 +100,7 @@
        "cloudCurrentTrackIndex",
        "cloudTrackInfos",
        "cloudSwitchingPlaylist",
+       "settings",
      ]),
      ...mapGetters([
        "currentPlayTrackKey",
@@ -108,11 +109,11 @@
    },
    watch: {
      localTrackInfos: function() {
-       if (this.playOrderIcon === "random") {
-         this.playRandom();
-       } else {
-         if (this.$refs.player.paused) {
+       if (this.isLocalPlaySource && this.localTrackInfos.length > 0) {
+         if (this.localCurrentTrackIndex != -1) {
            this.playTrack(this.localCurrentTrackIndex);
+         } else {
+           this.handlePlayFinish();
          }
        }
      },
@@ -149,6 +150,9 @@
      window.cloudUpdateLoginQr = this.cloudUpdateLoginQr;
      window.cloudUpdateTrackAudioSource = this.cloudUpdateTrackAudioSource;
      window.cloudUpdatePlaylists = this.cloudUpdatePlaylists;
+
+     // settings
+     window.loadSettings = this.loadSettings;
 
      this.audioMotion = new AudioMotionAnalyzer(
        document.getElementById('audio-visual'),
@@ -246,6 +250,9 @@
        } else if (this.playOrderIcon === "repeat") {
          this.playOrderIcon = "list";
        }
+
+       // update play mode
+       window.pyobject.vue_update_play_mode(this.playOrderIcon)
      },
 
      handlePlayFinish() {
@@ -281,8 +288,7 @@
        }
      },
 
-     initPanel(playOrderIcon, backgroundColor, foregroundColor, iconCacheDir, coverCacheDir, pathSep, defaultCoverPath) {
-       this.playOrderIcon = playOrderIcon;
+     initPanel(backgroundColor, foregroundColor, iconCacheDir, coverCacheDir, pathSep, defaultCoverPath) {
        this.backgroundColor = backgroundColor;
        this.foregroundColor = foregroundColor;
        this.iconCacheDir = iconCacheDir;
@@ -423,11 +429,14 @@
      },
 
      playAgain() {
-       var currentIndex;
+       var currentIndex = -1;
        if (this.isLocalPlaySource) {
          currentIndex = this.localCurrentTrackIndex;
        } else {
          currentIndex = this.cloudCurrentTrackIndex;
+       }
+       if (currentIndex == -1) {
+         currentIndex = 0;
        }
        this.playTrack(currentIndex);
      },
@@ -459,6 +468,11 @@
      cloudUpdatePlaylists(playlists) {
        console.log(`update cloud playlists, count: ${playlists.length}`);
        this.$store.commit('updateCloudPlaylists', playlists);
+     },
+
+     loadSettings(settings) {
+       this.$store.commit('updateSettings', settings);
+       this.playOrderIcon = settings.play_mode;
      }
 
    }

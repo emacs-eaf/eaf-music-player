@@ -51,7 +51,7 @@ def get_cloud_cache_dir():
         os.makedirs(cache_dir)
     return cache_dir
 
-def get_cloud_cache_sub_dir(dirname: str, filename: str):
+def get_cloud_cache_file(dirname: str, filename: str):
     sub_cache_dir = os.path.join(get_cloud_cache_dir(), dirname)
     if not os.path.isdir(sub_cache_dir):
         os.makedirs(sub_cache_dir)
@@ -59,10 +59,13 @@ def get_cloud_cache_sub_dir(dirname: str, filename: str):
 
 
 def get_cookie_cache_file(name: str) -> str:
-    return get_cloud_cache_sub_dir('cookie', name)
+    return get_cloud_cache_file('cookie', name)
 
 def get_temp_cache_file(name: str) -> str:
-    return get_cloud_cache_sub_dir('temp', name)
+    return get_cloud_cache_file('temp', name)
 
 def get_db_cache_file(name: str) -> str:
-    return get_cloud_cache_sub_dir('db', name)
+    return get_cloud_cache_file('db', name)
+
+def get_config_cache_file(name: str) -> str:
+    return get_cloud_cache_file('conf', name)
