@@ -71,7 +71,7 @@ class AppBuffer(BrowserBuffer):
         if not user_save_mode:
             emacs_play_mode = get_emacs_var("eaf-music-play-order")
             if emacs_play_mode:
-                self._config.play_mode = eval_in_emacs
+                self._config.play_mode = emacs_play_mode
             else:
                 self._config.play_mode = 'list'
 
