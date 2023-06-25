@@ -169,9 +169,9 @@
      // fix `net::ERR_NAME_NOT_RESOLVED` error
      // https://stackoverflow.com/questions/36512573/catching-neterr-name-not-resolved-for-fixing-bad-img-links
      window.addEventListener('error', function(e) {
-       var sourceId = e.target.parentNode.id;
-       if (sourceId == "audio") {
-          console.log('audio player error caught, try again');
+       var sourceId = e.target.parentNode?.id;
+       if (sourceId == "audio" && that.audioSource.startsWith('http')) {
+          console.log(`audio player error caught, try again, audio source: ${that.audioSource}`);
           that.playAgain();
        }
      }, true);
@@ -260,25 +260,21 @@
 
      handlePlayError() {
        // https://developer.mozilla.org/en-US/docs/Web/API/MediaError/message
-       var errcode = this.$refs.player.error.code;
-       console.log(`handle player error, code: ${errcode}`);
+       var errcode = this.$refs.player.error?.code;
+       console.log(`handle player error, audio source: ${this.audioSource}, code: ${errcode}`);
        switch(errcode) {
          case MediaError.MEDIA_ERR_ABORTED: {
-           console.log('user abort download audio source');
            break;
          }
          case MediaError.MEDIA_ERR_NETWORK: {
-           console.log('a network error occurred and the audio could not be downloaded');
            this.playAgain();
            break;
          }
          case MediaError.MEDIA_ERR_DECODE: {
-           console.log("Browser can't decode audio although it's downloaded");
            this.playNext();
            break;
          }
          case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: {
-           console.log("The audio format is not supported by the browser");
            this.playNext();
            break;
          }
@@ -344,13 +340,14 @@
          var playPromise = this.$refs.player.play();
          if (playPromise !== undefined) {
            // eslint-disable-next-line no-unused-vars
-           playPromise.then(_ => {}).catch(error => {
-             console.log(`play catch error: ${error}, audio source: ${this.audioSource}`);
-             /* this.playNext(); */
-           });
+           playPromise.then(_ => {}).catch(error => {});
          }
        } else {
-         this.$refs.player.pause();
+         var pausePromise = this.$refs.player.pause();
+         if (pausePromise !== undefined) {
+           // eslint-disable-next-line no-unused-vars
+           pausePromise.then(_ => {}).catch(error => {});
+         }
          this.playIcon = "play-circle";
        }
      },
