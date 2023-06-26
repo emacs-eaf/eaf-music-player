@@ -80,8 +80,10 @@
        }
      }
    },
-   mounted() {
-     this.scrollToCurrentTrack();
+   updated() {
+     this.$nextTick(function () {
+       this.scrollToCurrentTrack();
+     })
    },
    methods: {
      playItem(index) {

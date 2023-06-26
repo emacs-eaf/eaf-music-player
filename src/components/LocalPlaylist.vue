@@ -56,12 +56,15 @@
        this.scrollToCurrentTrack();
      }
    },
+   updated() {
+     this.$nextTick(function () {
+       this.scrollToCurrentTrack();
+     })
+   },
    mounted() {
      window.addLocalTrackInfos = this.addLocalTrackInfos;
      window.jumpToFile = this.jumpToFile;
      window.updateTagInfo = this.updateTagInfo;
-
-     this.scrollToCurrentTrack();
    },
    created() {
    },

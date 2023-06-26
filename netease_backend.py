@@ -97,13 +97,12 @@ class NeteaseBackend:
 
     def init_app(self, default_playlist_id: int):
         if self._load_playlists():
-            load_state = False
-            if default_playlist_id == self._like_playlist_id:
+            if default_playlist_id == self._like_playlist_id or default_playlist_id == 0:
                 load_state = self._load_like_songs()
             else:
                 load_state = self._load_playlist_songs(f'tracks_{default_playlist_id}.json')
 
-            if load_state:
+            if load_state and default_playlist_id:
                 self._current_playlist_id = default_playlist_id
         else:
             self._load_like_songs()
