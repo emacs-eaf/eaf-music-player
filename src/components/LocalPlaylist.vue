@@ -65,6 +65,10 @@
      window.addLocalTrackInfos = this.addLocalTrackInfos;
      window.jumpToFile = this.jumpToFile;
      window.updateTagInfo = this.updateTagInfo;
+
+     this.$nextTick(function() {
+       this.scrollToCurrentTrack();
+     })
    },
    created() {
    },

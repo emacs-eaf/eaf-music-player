@@ -82,6 +82,13 @@
    },
    updated() {
      this.$nextTick(function () {
+       this.scrollToCurrentPlaylist();
+       this.scrollToCurrentTrack();
+     })
+   },
+   mounted() {
+     this.$nextTick(function () {
+       this.scrollToCurrentPlaylist();
        this.scrollToCurrentTrack();
      })
    },
@@ -100,7 +107,7 @@
 
        this.$nextTick(function() {
          this.scrollToCurrentTrack();
-         this.$refs.cloudplaylist.children[this.cloudCurrentPlaylistIndex]?.scrollIntoViewIfNeeded(false);
+         this.scrollToCurrentPlaylist();
        })
      },
 
@@ -199,8 +206,13 @@
 
      scrollToCurrentTrack() {
        if (this.$refs.playlist) {
-         this.$refs.cloudplaylist.children[this.cloudCurrentPlaylistIndex]?.scrollIntoViewIfNeeded(false);
          this.$refs.playlist.children[this.cloudCurrentTrackIndex]?.scrollIntoViewIfNeeded(false);
+       }
+     },
+
+     scrollToCurrentPlaylist() {
+       if (this.$refs.cloudplaylist) {
+         this.$refs.cloudplaylist.children[this.cloudCurrentPlaylistIndex]?.scrollIntoViewIfNeeded(false);
        }
      }
    }
