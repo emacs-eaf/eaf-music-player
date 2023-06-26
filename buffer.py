@@ -61,9 +61,14 @@ class AppBuffer(BrowserBuffer):
         # config
         self._config = MusicConfig(get_config_cache_file('settings.json'))
 
-        # compatible with eaf-open-cloud-music command
+        # Ignore config source if url is `cloud`.
         if url == 'cloud':
             self._config.music_source = 'cloud'
+
+        # Ignore config source if url is local music path.
+        if os.path.exists(url):
+            self._config.music_source = 'local'
+
         self.play_source = self._config.music_source
 
         # compatible eaf-music-play-order emacs conf
