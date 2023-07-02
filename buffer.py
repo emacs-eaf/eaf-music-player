@@ -288,11 +288,13 @@ class AppBuffer(BrowserBuffer):
             self.thread_queue.append(fetch_lyric_thread)
             fetch_lyric_thread.start()
 
+    @PostGui()
     def update_lyric(self, track_unikey, lyric):
         # Only update lyric when
         if self.is_current_play_track(track_unikey):
             self.buffer_widget.eval_js_function("updateLyric", string_to_base64(lyric))
 
+    @PostGui()
     def update_cover(self, track_unikey, url):
         # Only update cover when
         if self.is_current_play_track(track_unikey):
@@ -301,6 +303,7 @@ class AppBuffer(BrowserBuffer):
                                                 "#3F3F3F" if is_light_image(url) else "#CCCCCC")
             self.update_audio_motion_gradient(url)
 
+    @PostGui()
     def update_audio_motion_gradient(self, url=None):
         try:
             tags = self.get_current_play_track_info()
