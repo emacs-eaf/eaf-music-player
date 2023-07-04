@@ -45,7 +45,7 @@ from music_config import MusicConfig
 from netease_backend import NeteaseBackend
 
 from music_service import music_service
-from music_service.utils import get_config_cache_file, get_logger
+from music_service.utils import get_config_cache_file, get_logger, normalize_path
 
 log = get_logger('AppBuffer')
 
@@ -86,12 +86,12 @@ class AppBuffer(BrowserBuffer):
 
         self.first_file = os.path.expanduser(url)
         self.panel_background_color = QColor(self.theme_background_color).darker(110).name()
-        self.icon_dir = os.path.join(os.path.dirname(__file__), "src", "svg")
-        self.icon_cache_dir = os.path.join(os.path.dirname(__file__), "src", "svg_cache")
-        self.cover_cache_dir = os.path.join(os.path.dirname(__file__), "src", "cover_cache")
-        self.lyrics_cache_dir = os.path.join(os.path.dirname(__file__), "src", "lyrics_cache")
-        self.light_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg")
-        self.dark_cover_path = os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg")
+        self.icon_dir = normalize_path(os.path.join(os.path.dirname(__file__), "src", "svg"))
+        self.icon_cache_dir = normalize_path(os.path.join(os.path.dirname(__file__), "src", "svg_cache"))
+        self.cover_cache_dir = normalize_path(os.path.join(os.path.dirname(__file__), "src", "cover_cache"))
+        self.lyrics_cache_dir = normalize_path(os.path.join(os.path.dirname(__file__), "src", "lyrics_cache"))
+        self.light_cover_path = normalize_path(os.path.join(os.path.dirname(__file__), "src", "cover", "light_cover.svg"))
+        self.dark_cover_path = normalize_path(os.path.join(os.path.dirname(__file__), "src", "cover", "dark_cover.svg"))
 
         self.theme_background_rgb_color = hex_to_rgb(self.theme_background_color)
 
@@ -135,7 +135,7 @@ class AppBuffer(BrowserBuffer):
             self.theme_foreground_color,
             self.icon_cache_dir,
             self.cover_cache_dir,
-            os.path.sep,
+            "/",
             self.get_default_cover_path()
         )
 
@@ -456,10 +456,10 @@ class FetchLyric(QThread):
 
 
 def get_lyric_path(lyrics_cache_dir, artist, title):
-    return os.path.join(lyrics_cache_dir, "{}_{}.lyc".format(artist.replace("/", "_"), title.replace("/", "_")))
+    return normalize_path(os.path.join(lyrics_cache_dir, "{}_{}.lyc".format(artist.replace("/", "_"), title.replace("/", "_"))))
 
 def get_cover_path(cover_cache_dir, artist, title):
-    return os.path.join(cover_cache_dir, "{}_{}.png".format(artist.replace("/", "_"), title.replace("/", "_")))
+    return normalize_path(os.path.join(cover_cache_dir, "{}_{}.png".format(artist.replace("/", "_"), title.replace("/", "_"))))
 
 def is_light_image(img_path):
     try:

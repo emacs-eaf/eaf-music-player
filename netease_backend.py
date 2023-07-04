@@ -11,6 +11,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 from music_service import music_service, utils
 from music_service.netease import NeteaseMusicApi
+from music_service.utils import normalize_path
 
 logger = utils.get_logger('NeteaseBackend')
 
@@ -71,7 +72,7 @@ class NeteaseBackend:
         if not os.path.exists(self.music_cache_dir):
             os.makedirs(self.music_cache_dir)
 
-        return os.path.join(self.music_cache_dir, name)
+        return normalize_path(os.path.join(self.music_cache_dir, name))
 
     def _thread_post(self, exec_func, handle_func=None, handle_arg=None, *args, **kwargs):
         task = SafeThread(exec_func, handle_func, handle_arg, *args, **kwargs)
