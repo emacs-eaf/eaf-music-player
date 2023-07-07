@@ -25,7 +25,8 @@
       "pycryptodome",
       "rsa",
       "Pillow",
-      "requests"
+      "requests",
+      "flask"
     ],
     "win32": [
       "mutagen",
@@ -34,7 +35,8 @@
       "pycryptodome",
       "rsa",
       "Pillow",
-      "requests"
+      "requests",
+      "flask"
     ],
     "darwin": [
       "mutagen",
@@ -43,7 +45,8 @@
       "pycryptodome",
       "rsa",
       "Pillow",
-      "requests"
+      "requests",
+      "flask"
     ]
   },
   "npm_global": [

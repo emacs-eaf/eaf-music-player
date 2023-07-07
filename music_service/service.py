@@ -1,6 +1,7 @@
 import html
 import os.path
 import re
+import base64
 from collections import OrderedDict
 from typing import Dict, Optional
 
@@ -8,6 +9,12 @@ from PIL import Image
 
 from music_service.base import BaseProvider
 from music_service.utils import download_file, get_logger
+
+try:
+    from music_service import bridge_server
+except ImportError:
+    bridge_server = None
+
 
 lrc_pattern = re.compile(r'^\[\d{2}:\d{2}\.\d+\]')
 log = get_logger('MusicService')
@@ -49,6 +56,21 @@ class MusicService:
 
     def __init__(self):
         self._prividers = OrderedDict()
+        self._bridge_server_port = 0
+
+    def run_bridge_server(self, port: int):
+        if bridge_server:
+            bridge_server.run_server_multiprocess(port)
+            self._bridge_server_port = port
+
+    def bridge_server_is_running(self) -> bool:
+        return bool(self._bridge_server_port)
+
+    def get_bridge_song_url(self, url: str) -> Optional[str]:
+        if not self._bridge_server_port:
+            return None
+        url = base64.b64encode(url.encode('utf-8')).decode('utf-8')
+        return f'http://127.0.0.1:{self._bridge_server_port}/forward?url={url}'
 
     def register_provider(self, provider: BaseProvider):
         self._prividers[provider.provider_name] = provider

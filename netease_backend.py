@@ -12,6 +12,7 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from music_service import music_service, utils
 from music_service.netease import NeteaseMusicApi
 from music_service.utils import normalize_path
+from music_service import bilibili
 
 logger = utils.get_logger('NeteaseBackend')
 
@@ -228,18 +229,35 @@ class NeteaseBackend:
         info = self.get_track_info(song_id)
         if not info:
             return
+
         mp3_name = f"{info['artist']}_{info['name']}.mp3"
         cache_mp3_file = self.get_music_cache_file(mp3_name)
         if os.path.exists(cache_mp3_file):
             self._exec_js('cloudUpdateTrackAudioSource', cache_mp3_file)
         else:
             self._cache_quality_mp3(song_id, mp3_name)
-            self._thread_post(self._api.get_song_url, self._handle_fetch_audio_source, track_unikey, song_id)
+            self._thread_post(self.get_song_url, self._handle_fetch_audio_source, track_unikey, song_id)
 
-    def _handle_fetch_audio_source(self, info, track_unikey):
-        url = ''
-        if info:
-            url = info['url']
+    def get_song_url(self, song_id: int):
+        url = self._api.get_song_url(song_id)
+        if url:
+            return url
+        return self.get_song_url_by_other_source(song_id)
+
+    def get_song_url_by_other_source(self, song_id: int):
+        if not music_service.bridge_server_is_running():
+            return None
+        info = self.get_track_info(song_id)
+        if not info:
+            return None
+        name = info['name']
+        logger.debug(f'fetch song_id: {song_id}, name: {name} from bilibili source')
+        url = bilibili.get_song_url(name, info['artist'])
+        return music_service.get_bridge_song_url(url)
+
+    def _handle_fetch_audio_source(self, url, track_unikey):
+        if not url:
+            url = ''
         if self._buffer.is_current_play_track(track_unikey):
             logger.debug(f'cloudUpdateTrackAudioSource url: {url}')
             self._exec_js('cloudUpdateTrackAudioSource', url)

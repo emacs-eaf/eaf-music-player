@@ -157,7 +157,19 @@ class AppBuffer(BrowserBuffer):
         self.local_tracks = {x['path']:x for x in track_list}
         self.buffer_widget.eval_js_function('addLocalTrackInfos', track_list)
 
+        self.init_music_service()
         self._netease_backend.init_app(self._config.cloud_playlist_id)
+
+    def init_music_service(self):
+        def try_start_bridge_server(result):
+            log.debug(f'check browser is support m4a auido result: {result}')
+            if result:
+                port = get_free_port()
+                log.debug(f'bridge server run port: {port}')
+                music_service.run_bridge_server(port)
+
+        self.buffer_widget.web_page.runJavaScript("document.getElementById('audio').canPlayType('audio/aac')",
+                                                  try_start_bridge_server)
 
     def get_default_cover_path(self):
         return self.light_cover_path if self.theme_mode == "light" else self.dark_cover_path

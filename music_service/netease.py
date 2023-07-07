@@ -293,11 +293,7 @@ class NeteaseMusicApi(BaseProvider):
 
     def get_song_url(self, song_id: int):
         result = self.api_song_url_v1(song_id)
-        url = result['data'][0].get('url', '')
-        return {
-            'id': song_id,
-            'url': url
-        }
+        return result['data'][0].get('url', '')
 
     def get_exhigh_song_url(self, song_id: int) -> str:
         result = self.api_song_url_v1(song_id, 'exhigh')
