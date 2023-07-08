@@ -313,7 +313,7 @@ class NeteaseBackend:
                         url = self._api.get_exhigh_song_url(song_id)
                     else:
                         url = self.get_song_url_by_other_source(song_id)
-                    if url != "":
+                    if url:
                         temp_file = utils.get_temp_cache_file(mp3_name)
                         if utils.download_file(url, temp_file):
                             mp3_file = self.get_music_cache_file(mp3_name)
