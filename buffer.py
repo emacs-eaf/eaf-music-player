@@ -162,7 +162,7 @@ class AppBuffer(BrowserBuffer):
 
     def init_music_service(self):
         def try_start_bridge_server(result):
-            log.debug(f'check browser is support m4a auido result: {result}')
+            log.debug(f'check browser is support m4a audio result: {result}')
             if result:
                 port = get_free_port()
                 log.debug(f'bridge server run port: {port}')

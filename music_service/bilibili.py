@@ -30,7 +30,10 @@ def api_search_song_id(keyword: str) -> int:
         'keyword': keyword
     }
     resp = requests.get(url, params=params, headers=headers).json()
-    return resp.get('data', {}).get('result', [{}])[0].get('id', 0)
+    results = resp.get('data', {}).get('result', None)
+    if results:
+        return results[0].get('id', 0)
+    return None
 
 def api_get_song_url(song_id: int) -> Optional[str]:
     url = 'https://www.bilibili.com/audio/music-service-c/web/url'

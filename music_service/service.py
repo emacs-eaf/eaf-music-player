@@ -67,6 +67,8 @@ class MusicService:
         return bool(self._bridge_server_port)
 
     def get_bridge_song_url(self, url: str) -> Optional[str]:
+        if not url:
+            return None
         if not self._bridge_server_port:
             return None
         url = base64.b64encode(url.encode('utf-8')).decode('utf-8')
