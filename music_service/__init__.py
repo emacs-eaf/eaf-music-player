@@ -8,6 +8,8 @@ music_service.register_provider(NeteaseMusicApi())
 music_service.register_provider(QQMusicApi())
 
 # song providers
+from music_service.kuwo import KuWo
 from music_service.bilibili import Bilibili
 
+music_service.register_song_provider(KuWo())
 music_service.register_song_provider(Bilibili())

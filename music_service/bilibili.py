@@ -1,9 +1,7 @@
 import requests
 from typing import Optional
-from music_service.utils import get_logger, USER_AGENT
+from music_service.utils import USER_AGENT
 from music_service.base import BaseSongProvider
-
-logger = get_logger('bilibili')
 
 headers = {
     'User-Agent': USER_AGENT,
@@ -17,15 +15,11 @@ class Bilibili(BaseSongProvider):
     use_proprietary_codecs = True
 
     def fetch_song_url(self, name: str, artist: str = '', album: str = ''):
-        try:
-            keyword = f'{name} {artist}'
-            song_id = self.api_search_song_id(keyword)
-            if not song_id:
-                return None
-            return self.api_get_song_url(song_id)
-        except Exception as e:
-            logger.exception(f'get song url error: {e}')
+        keyword = f'{name} {artist}'
+        song_id = self.api_search_song_id(keyword)
+        if not song_id:
             return None
+        return self.api_get_song_url(song_id)
 
     def get_bridge_http_headers(self) -> dict:
         return {

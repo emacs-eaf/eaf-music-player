@@ -132,18 +132,24 @@ class MusicService:
         artist = refine(artist)
         album = refine(album)
         for provider in self._song_prividers.values():
+            log.debug(f'fetch song url provider: {provider.provider_name} search name: {name}')
             if provider.use_proprietary_codecs and not self.has_proprietary_codecs:
+                log.debug(f'fetch song url provider: {provider.provider_name} require proprietary_codecs, ingonre')
                 continue
 
             if provider.require_bridge and self._bridge_server_port == 0:
+                log.debug(f'fetch song url provider: {provider.provider_name} require bridge, ingonre')
                 continue
 
-            url = provider.fetch_song_url(name, artist, album)
-            if not url:
+            try:
+                url = provider.fetch_song_url(name, artist, album)
+                if not url:
+                    continue
+                if provider.require_bridge:
+                    url = self._get_bridge_song_url(url, provider.get_bridge_http_headers())
+                return url
+            except Exception as e:
+                log.exception(f'provider: {provider.provider_name} fetch song url error: {e}')
                 continue
-
-            if provider.require_bridge:
-                url = self._get_bridge_song_url(url, provider.get_bridge_http_headers())
-            return url
 
 music_service = MusicService()
