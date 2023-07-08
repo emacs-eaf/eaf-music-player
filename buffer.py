@@ -161,12 +161,14 @@ class AppBuffer(BrowserBuffer):
         self._netease_backend.init_app(self._config.cloud_playlist_id)
 
     def init_music_service(self):
+        port = get_free_port()
+        music_service.run_bridge_server(port)
+        log.debug(f'bridge server run port: {port}')
+
         def try_start_bridge_server(result):
             log.debug(f'check browser is support m4a audio result: {result}')
             if result:
-                port = get_free_port()
-                log.debug(f'bridge server run port: {port}')
-                music_service.run_bridge_server(port)
+                music_service.has_proprietary_codecs = True
 
         self.buffer_widget.web_page.runJavaScript("document.getElementById('audio').canPlayType('audio/aac')",
                                                   try_start_bridge_server)

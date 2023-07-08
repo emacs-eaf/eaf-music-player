@@ -12,7 +12,6 @@ from PyQt6.QtCore import QThread, pyqtSignal
 from music_service import music_service, utils
 from music_service.netease import NeteaseMusicApi
 from music_service.utils import normalize_path
-from music_service import bilibili
 
 logger = utils.get_logger('NeteaseBackend')
 
@@ -245,15 +244,12 @@ class NeteaseBackend:
         return self.get_song_url_by_other_source(song_id)
 
     def get_song_url_by_other_source(self, song_id: int):
-        if not music_service.bridge_server_is_running():
-            return None
         info = self.get_track_info(song_id)
         if not info:
             return None
         name = info['name']
-        logger.debug(f'fetch song_id: {song_id}, name: {name} from bilibili source')
-        url = bilibili.get_song_url(name, info['artist'])
-        return music_service.get_bridge_song_url(url)
+        logger.debug(f'fetch song_id: {song_id}, name: {name} from other source')
+        return music_service.fetch_song_url(name, info['artist'], info['album'])
 
     def _handle_fetch_audio_source(self, url, track_unikey):
         if not url:
