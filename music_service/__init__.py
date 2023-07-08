@@ -11,5 +11,5 @@ music_service.register_provider(QQMusicApi())
 from music_service.kuwo import KuWo
 from music_service.bilibili import Bilibili
 
-music_service.register_song_provider(KuWo())
 music_service.register_song_provider(Bilibili())
+music_service.register_song_provider(KuWo())

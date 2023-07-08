@@ -139,7 +139,7 @@ class NeteaseMusicApi(BaseProvider):
             return None
         lyric_result = self.api_lyric(song_id)
         return lyric_result.get('lrc', {}).get('lyric', None)
-    
+
     def fetch_cover(self, name: str, artist: str = '', album: str = '', song_id: int = 0) -> Optional[str]:
         if song_id == 0:
             song_id = self.get_song_id(name, artist, album, fuzzy=False)
@@ -244,13 +244,21 @@ class NeteaseMusicApi(BaseProvider):
             logger.error(f'the like playlist: {playlist_id} get songs failed')
             return None
 
+        privileges = song_detail_resp.get('privileges', [])
+
         song_list = []
-        for song in songs:
+        for index, song in enumerate(songs):
+            if index < len(privileges):
+                status = privileges[index].get('st', 0) >= 0
+            else:
+                status = True
+
             song_info = {
                 'id': song['id'],
                 'name': song['name'],
                 'artist': song.get('ar', [{}])[0].get('name', ''),
-                'album': song.get('al', {}).get('name', '')
+                'album': song.get('al', {}).get('name', ''),
+                'status': status
             }
             song_list.append(song_info)
         return song_list
@@ -293,7 +301,12 @@ class NeteaseMusicApi(BaseProvider):
 
     def get_song_url(self, song_id: int):
         result = self.api_song_url_v1(song_id)
-        return result['data'][0].get('url', '')
+        if not result:
+            return ''
+        lists = result.get('data', None)
+        if not lists:
+            return ''
+        return lists[0].get('url', '')
 
     def get_exhigh_song_url(self, song_id: int) -> str:
         result = self.api_song_url_v1(song_id, 'exhigh')

@@ -30,7 +30,7 @@ class KuWo(BaseSongProvider):
         headers = default_headers.copy()
         headers['Cross'] = cross
         headers['Cookie'] = f'Hm_token={token}'
-        return requests.get(url, params=params, headers=headers).json()
+        return requests.get(url, params=params, headers=headers, timeout=5.0).json()
 
     def api_search_song_id(self, keyword: str, token: str, cross: str) -> int:
         url = 'http://www.kuwo.cn/api/www/search/searchMusicBykeyWord'

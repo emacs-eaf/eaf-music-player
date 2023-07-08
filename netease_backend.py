@@ -231,11 +231,16 @@ class NeteaseBackend:
 
         mp3_name = f"{info['artist']}_{info['name']}.mp3"
         cache_mp3_file = self.get_music_cache_file(mp3_name)
+        song_status = info.get('status', True)
         if os.path.exists(cache_mp3_file):
             self._exec_js('cloudUpdateTrackAudioSource', cache_mp3_file)
         else:
-            self._cache_quality_mp3(song_id, mp3_name)
-            self._thread_post(self.get_song_url, self._handle_fetch_audio_source, track_unikey, song_id)
+            self._cache_quality_mp3(song_id, mp3_name, song_status)
+            if song_status:
+                self._thread_post(self.get_song_url, self._handle_fetch_audio_source, track_unikey, song_id)
+            else:
+                self._thread_post(self.get_song_url_by_other_source,
+                                  self._handle_fetch_audio_source, track_unikey, song_id)
 
     def get_song_url(self, song_id: int):
         url = self._api.get_song_url(song_id)
@@ -294,17 +299,20 @@ class NeteaseBackend:
                 logger.exception(f'login qr check error, {e}')
             time.sleep(1.0)
 
-    def _cache_quality_mp3(self, song_id: int, mp3_name: str):
+    def _cache_quality_mp3(self, song_id: int, mp3_name: str, status: bool):
         if self._current_playlist_id == self._like_playlist_id:
-            self._cache_queue.put((song_id, mp3_name))
+            self._cache_queue.put((song_id, mp3_name, status))
 
     def _start_cache_mp3_task(self):
         while True:
             task = self._cache_queue.get()
             if task:
                 try:
-                    song_id, mp3_name = task
-                    url = self._api.get_exhigh_song_url(song_id)
+                    song_id, mp3_name, status = task
+                    if status:
+                        url = self._api.get_exhigh_song_url(song_id)
+                    else:
+                        url = self.get_song_url_by_other_source(song_id)
                     if url != "":
                         temp_file = utils.get_temp_cache_file(mp3_name)
                         if utils.download_file(url, temp_file):

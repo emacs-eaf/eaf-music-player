@@ -34,7 +34,7 @@ class Bilibili(BaseSongProvider):
             'pagesize': 30,
             'keyword': keyword
         }
-        resp = requests.get(url, params=params, headers=headers).json()
+        resp = requests.get(url, params=params, headers=headers, timeout=5.0).json()
         results = resp.get('data', {}).get('result', None)
         if results:
             return results[0].get('id', 0)
@@ -47,5 +47,5 @@ class Bilibili(BaseSongProvider):
             'quality': "2",
             'sid': song_id
         }
-        resp = requests.get(url, params=params, headers=headers)
+        resp = requests.get(url, params=params, headers=headers, timeout=5.0)
         return resp.json().get('data', {}).get('cdns', [None])[0]
