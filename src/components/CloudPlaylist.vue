@@ -255,11 +255,12 @@
    white-space: nowrap;
    overflow: hidden;
    text-overflow: ellipsis;
-   font-size: 15px;
+   font-size: 16px;
+   margin-bottom: 2px;
  }
 
  .playlist-info {
-   font-size: 12px;
+   font-size: 13px;
  }
 
  .playlist {
